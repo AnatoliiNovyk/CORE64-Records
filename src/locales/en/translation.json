@@ -1,0 +1,352 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "releases": "Releases",
+    "producers": "Producers",
+    "video": "Video",
+    "photo": "Photo",
+    "events": "Events",
+    "partners": "Partners",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "CORE64 RECORDS",
+    "subtitle": "Neurofunk / DnB / Breakbeat / Techstep",
+    "tagline": "Underground Bass Music Label",
+    "exploreBtn": "EXPLORE RELEASES",
+    "contactBtn": "CONTACT US"
+  },
+  "about": {
+    "prefix": "// ABOUT",
+    "title": "About the Label",
+    "text": "CORE64 Records is an underground bass music label focused on the darkest corners of Drum & Bass, Neurofunk, Breakbeat, and Techstep. We champion raw energy, deep sound design, and uncompromising production quality.",
+    "mission": "Our mission is to unite the global community of bass music producers and listeners through high-quality releases, live events, and digital culture.",
+    "stats": {
+      "releases": "Releases",
+      "releasesValue": "64+",
+      "producers": "Producers",
+      "producersValue": "20+",
+      "years": "Years",
+      "yearsValue": "10+",
+      "plays": "Plays",
+      "playsValue": "1M+"
+    }
+  },
+  "releases": {
+    "prefix": "// CATALOG",
+    "title": "Releases",
+    "filterAll": "All",
+    "empty": "No releases found.",
+    "buyStream": "Buy / Stream"
+  },
+  "producers": {
+    "prefix": "// ARTISTS",
+    "title": "Producers",
+    "empty": "No producers listed yet.",
+    "listenOn": "Listen on"
+  },
+  "video": {
+    "prefix": "// MEDIA",
+    "title": "Video",
+    "empty": "No videos available yet.",
+    "invalidUrl": "Invalid video URL"
+  },
+  "photo": {
+    "prefix": "// GALLERY",
+    "title": "Photo",
+    "empty": "No photos available yet."
+  },
+  "events": {
+    "prefix": "// EVENTS",
+    "title": "Upcoming Events",
+    "empty": "No upcoming events.",
+    "tickets": "Tickets"
+  },
+  "partners": {
+    "prefix": "// NETWORK",
+    "title": "Friends, Partners & Sponsors",
+    "empty": "Partners coming soon.",
+    "sponsors": "Sponsors",
+    "partners": "Partners",
+    "friends": "Friends"
+  },
+  "contact": {
+    "prefix": "// GET IN TOUCH",
+    "title": "Contact",
+    "description": "Have a question, want to submit a demo, or book us for an event? Drop us a message.",
+    "name": "Your Name",
+    "email": "Email",
+    "subject": "Subject (optional)",
+    "message": "Your message...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent! We will get back to you soon.",
+    "error": "Failed to send message. Please try again.",
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMin": "Name must be at least 2 characters",
+      "emailRequired": "Valid email is required",
+      "messageMin": "Message must be at least 10 characters"
+    }
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "genre": "Neurofunk / DnB / Breakbeat / Techstep"
+  },
+  "admin": {
+    "brand": "CORE64 CRM",
+    "header": "Admin Panel",
+    "nav": {
+      "dashboard": "Dashboard",
+      "content": "Site Content",
+      "releases": "Releases",
+      "producers": "Producers",
+      "videos": "Videos",
+      "photos": "Photos",
+      "events": "Events",
+      "partners": "Partners",
+      "messages": "Messages",
+      "management": "Management",
+      "backToSite": "Back to Site",
+      "logout": "Log out"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Overview of CORE64 Records content",
+      "releases": "Releases",
+      "producers": "Producers",
+      "events": "Events",
+      "messages": "Messages",
+      "unread": "unread"
+    },
+    "login": {
+      "title": "Admin Login",
+      "description": "Sign in to the CORE64 Records admin panel",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "loading": "Signing in...",
+      "error": "Invalid email or password"
+    },
+    "content": {
+      "title": "Site Content",
+      "description": "Edit all text, headings, and images on the landing page",
+      "section": "Section",
+      "type": "Type",
+      "value": "Value",
+      "actions": "Actions",
+      "editTitle": "Edit Content",
+      "addNew": "Add Content",
+      "save": "Save",
+      "saving": "Saving...",
+      "uploadImage": "Upload Image",
+      "sectionKeyPlaceholder": "Section key (e.g. home_hero_title)",
+      "labelPlaceholder": "Label",
+      "contentTypes": {
+        "text": "Text",
+        "image": "Image",
+        "html": "HTML"
+      }
+    },
+    "releases": {
+      "title": "Releases",
+      "description": "Manage the release catalog",
+      "addNew": "Add Release",
+      "editTitle": "Edit Release",
+      "fields": {
+        "title": "Title",
+        "catalogNumber": "Catalog Number",
+        "artistName": "Artist Name",
+        "genre": "Genre",
+        "releaseDate": "Release Date",
+        "coverArt": "Cover Art",
+        "description": "Description",
+        "buyLink": "Buy Link",
+        "streamLinks": "Stream Links (JSON)",
+        "sortOrder": "Sort Order",
+        "visible": "Visible"
+      },
+      "genres": {
+        "neurofunk": "Neurofunk",
+        "dnb": "DnB",
+        "breakbeat": "Breakbeat",
+        "techstep": "Techstep"
+      },
+      "validation": {
+        "required": "Title and artist are required"
+      }
+    },
+    "producers": {
+      "title": "Producers",
+      "description": "Manage the artist roster",
+      "addNew": "Add Producer",
+      "editTitle": "Edit Producer",
+      "fields": {
+        "name": "Name",
+        "slug": "Slug",
+        "bio": "Bio",
+        "avatar": "Avatar",
+        "genres": "Genres (comma-separated)",
+        "socialLinks": "Social Links (JSON)",
+        "socialLinksSection": "Social Media & Contacts",
+        "sortOrder": "Sort Order",
+        "visible": "Visible",
+        "social": {
+          "website": "Website URL",
+          "instagram": "Instagram URL",
+          "facebook": "Facebook URL",
+          "youtube": "YouTube URL",
+          "tiktok": "TikTok URL",
+          "twitter": "Twitter / X URL",
+          "soundcloud": "SoundCloud URL",
+          "email": "Contact Email",
+          "phone": "Phone Number"
+        },
+        "musicLinksSection": "Music Platform Links",
+        "music": {
+          "spotify": "Spotify Profile URL",
+          "apple_music": "Apple Music URL",
+          "amazon_music": "Amazon Music URL",
+          "soundcloud": "SoundCloud URL",
+          "beatport": "Beatport URL",
+          "youtube_music": "YouTube Music URL",
+          "tidal": "Tidal URL",
+          "deezer": "Deezer URL",
+          "bandcamp": "Bandcamp URL"
+        }
+      },
+      "validation": {
+        "required": "Name and slug are required"
+      }
+    },
+    "videos": {
+      "title": "Videos",
+      "description": "Manage YouTube videos",
+      "addNew": "Add Video",
+      "editTitle": "Edit Video",
+      "fields": {
+        "title": "Title",
+        "youtubeUrl": "YouTube URL",
+        "description": "Description",
+        "sortOrder": "Sort Order",
+        "visible": "Visible"
+      },
+      "validation": {
+        "required": "Title and URL required"
+      }
+    },
+    "photos": {
+      "title": "Photos",
+      "description": "Manage the photo gallery",
+      "addNew": "Add Photo",
+      "editTitle": "Edit Photo",
+      "fields": {
+        "title": "Title",
+        "image": "Image",
+        "caption": "Caption",
+        "category": "Category",
+        "sortOrder": "Sort Order",
+        "visible": "Visible"
+      },
+      "validation": {
+        "required": "Image is required"
+      }
+    },
+    "events": {
+      "title": "Events",
+      "description": "Manage events",
+      "addNew": "Add Event",
+      "editTitle": "Edit Event",
+      "fields": {
+        "title": "Title",
+        "date": "Date",
+        "venue": "Venue",
+        "city": "City",
+        "description": "Description",
+        "image": "Image",
+        "ticketLink": "Ticket Link",
+        "lineup": "Lineup (comma-separated)",
+        "visible": "Visible"
+      },
+      "validation": {
+        "required": "Title and date required"
+      }
+    },
+    "partners": {
+      "title": "Partners",
+      "description": "Manage friends, partners, and sponsors",
+      "addNew": "Add Partner",
+      "editTitle": "Edit Partner",
+      "fields": {
+        "name": "Name",
+        "logo": "Logo",
+        "websiteUrl": "Website URL",
+        "category": "Category",
+        "sortOrder": "Sort Order",
+        "visible": "Visible"
+      },
+      "categories": {
+        "friend": "Friend",
+        "partner": "Partner",
+        "sponsor": "Sponsor"
+      },
+      "validation": {
+        "required": "Name required"
+      }
+    },
+    "messages": {
+      "title": "Messages",
+      "description": "Contact form submissions",
+      "empty": "No messages yet.",
+      "markRead": "Mark read",
+      "markUnread": "Mark unread",
+      "delete": "Delete",
+      "from": "From",
+      "subject": "Subject",
+      "status": "Status",
+      "noSubject": "(no subject)"
+    },
+    "common": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "close": "Close",
+      "confirm": "Confirm",
+      "search": "Search...",
+      "noResults": "No results.",
+      "loading": "Loading...",
+      "yes": "Yes",
+      "no": "No",
+      "hidden": "Hidden",
+      "deleteConfirmation": "This action cannot be undone."
+    },
+    "langTabs": {
+      "en": "EN",
+      "uk": "UK"
+    }
+  },
+  "toast": {
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "saveFailed": "Failed to save",
+    "deleteFailed": "Failed to delete",
+    "markedRead": "Marked as read",
+    "markedUnread": "Marked as unread",
+    "uploadFailed": "Failed to upload file",
+    "fileTooLarge": "File is too large (max 5MB)"
+  },
+  "fileUpload": {
+    "dropzone": "Drag & drop an image here, or click to select",
+    "change": "Change",
+    "remove": "Remove",
+    "maxSize": "Max file size: 5MB"
+  },
+  "language": {
+    "en": "English",
+    "uk": "Ukrainian"
+  }
+}

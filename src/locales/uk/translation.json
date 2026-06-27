@@ -1,0 +1,352 @@
+{
+  "nav": {
+    "home": "Головна",
+    "about": "Про нас",
+    "releases": "Релізи",
+    "producers": "Продюсери",
+    "video": "Відео",
+    "photo": "Фото",
+    "events": "Події",
+    "partners": "Партнери",
+    "contact": "Контакти"
+  },
+  "hero": {
+    "title": "CORE64 RECORDS",
+    "subtitle": "Neurofunk / DnB / Breakbeat / Techstep",
+    "tagline": "Андерграунд бас-музичний лейбл",
+    "exploreBtn": "ДОСЛІДИТИ РЕЛІЗИ",
+    "contactBtn": "ЗВ'ЯЗАТИСЯ З НАМИ"
+  },
+  "about": {
+    "prefix": "// ПРО НАС",
+    "title": "Про лейбл",
+    "text": "CORE64 Records - це андерграунд бас-музичний лейбл, який зосереджений на найтемніших куточках Drum & Bass, Neurofunk, Breakbeat та Techstep. Ми підтримуємо необроблену енергію, глибокий саунд-дизайн та безкомпромісну якість продакшну.",
+    "mission": "Наша місія - об'єднати глобальну спільноту продюсерів та слухачів бас-музики через якісні релізи, живі події та цифрову культуру.",
+    "stats": {
+      "releases": "Релізів",
+      "releasesValue": "64+",
+      "producers": "Продюсерів",
+      "producersValue": "20+",
+      "years": "Років",
+      "yearsValue": "10+",
+      "plays": "Прослуховувань",
+      "playsValue": "1M+"
+    }
+  },
+  "releases": {
+    "prefix": "// КАТАЛОГ",
+    "title": "Релізи",
+    "filterAll": "Усі",
+    "empty": "Релізів не знайдено.",
+    "buyStream": "Купити / Слухати"
+  },
+  "producers": {
+    "prefix": "// АРТИСТИ",
+    "title": "Продюсери",
+    "empty": "Продюсерів поки немає.",
+    "listenOn": "Слухати на"
+  },
+  "video": {
+    "prefix": "// МЕДІА",
+    "title": "Відео",
+    "empty": "Відео поки немає.",
+    "invalidUrl": "Невалідне URL відео"
+  },
+  "photo": {
+    "prefix": "// ГАЛЕРЕЯ",
+    "title": "Фото",
+    "empty": "Фото поки немає."
+  },
+  "events": {
+    "prefix": "// ПОДІЇ",
+    "title": "Найближчі події",
+    "empty": "Найближчих подій немає.",
+    "tickets": "Квитки"
+  },
+  "partners": {
+    "prefix": "// МЕРЕЖА",
+    "title": "Друзі, Партнери та Спонсори",
+    "empty": "Партнери з'являться найближчим часом.",
+    "sponsors": "Спонсори",
+    "partners": "Партнери",
+    "friends": "Друзі"
+  },
+  "contact": {
+    "prefix": "// ЗВ'ЯЗОК",
+    "title": "Контакти",
+    "description": "Маєте питання, хочете надіслати демо або забронювати нас на подію? Напишіть нам.",
+    "name": "Ваше ім'я",
+    "email": "Електронна пошта",
+    "subject": "Тема (необов'язково)",
+    "message": "Ваше повідомлення...",
+    "send": "Надіслати повідомлення",
+    "sending": "Надсилається...",
+    "success": "Повідомлення надіслано! Ми зв'яжемося з вами найближчим часом.",
+    "error": "Не вдалося надіслати повідомлення. Спробуйте ще раз.",
+    "validation": {
+      "nameRequired": "Ім'я обов'язкове",
+      "nameMin": "Ім'я повинно містити щонайменше 2 символи",
+      "emailRequired": "Потрібна дійсна електронна адреса",
+      "messageMin": "Повідомлення повинно містити щонайменше 10 символів"
+    }
+  },
+  "footer": {
+    "rights": "Усі права захищені",
+    "genre": "Neurofunk / DnB / Breakbeat / Techstep"
+  },
+  "admin": {
+    "brand": "CORE64 CRM",
+    "header": "Панель адміністратора",
+    "nav": {
+      "dashboard": "Головна панель",
+      "content": "Контент сайту",
+      "releases": "Релізи",
+      "producers": "Продюсери",
+      "videos": "Відео",
+      "photos": "Фото",
+      "events": "Події",
+      "partners": "Партнери",
+      "messages": "Повідомлення",
+      "management": "Управління",
+      "backToSite": "На сайт",
+      "logout": "Вийти"
+    },
+    "dashboard": {
+      "title": "Головна панель",
+      "description": "Огляд контенту CORE64 Records",
+      "releases": "Релізів",
+      "producers": "Продюсерів",
+      "events": "Подій",
+      "messages": "Повідомлень",
+      "unread": "непрочитаних"
+    },
+    "login": {
+      "title": "Вхід адміністратора",
+      "description": "Увійдіть до панелі адміністратора CORE64 Records",
+      "email": "Електронна пошта",
+      "password": "Пароль",
+      "submit": "Увійти",
+      "loading": "Входимо...",
+      "error": "Невірна електронна пошта або пароль"
+    },
+    "content": {
+      "title": "Контент сайту",
+      "description": "Редагуйте текст, заголовки та зображення на лендінгу",
+      "section": "Розділ",
+      "type": "Тип",
+      "value": "Значення",
+      "actions": "Дії",
+      "editTitle": "Редагувати контент",
+      "addNew": "Додати контент",
+      "save": "Зберегти",
+      "saving": "Збереження...",
+      "uploadImage": "Завантажити зображення",
+      "sectionKeyPlaceholder": "Ключ розділу (напр. home_hero_title)",
+      "labelPlaceholder": "Мітка",
+      "contentTypes": {
+        "text": "Текст",
+        "image": "Зображення",
+        "html": "HTML"
+      }
+    },
+    "releases": {
+      "title": "Релізи",
+      "description": "Керуйте каталогом релізів",
+      "addNew": "Додати реліз",
+      "editTitle": "Редагувати реліз",
+      "fields": {
+        "title": "Назва",
+        "catalogNumber": "Каталожний номер",
+        "artistName": "Ім'я артиста",
+        "genre": "Жанр",
+        "releaseDate": "Дата релізу",
+        "coverArt": "Обкладинка",
+        "description": "Опис",
+        "buyLink": "Посилання для купівлі",
+        "streamLinks": "Потокові посилання (JSON)",
+        "sortOrder": "Порядок сортування",
+        "visible": "Видимий"
+      },
+      "genres": {
+        "neurofunk": "Neurofunk",
+        "dnb": "DnB",
+        "breakbeat": "Breakbeat",
+        "techstep": "Techstep"
+      },
+      "validation": {
+        "required": "Назва та артист обов'язкові"
+      }
+    },
+    "producers": {
+      "title": "Продюсери",
+      "description": "Керуйте ростером артистів",
+      "addNew": "Додати продюсера",
+      "editTitle": "Редагувати продюсера",
+      "fields": {
+        "name": "Ім'я",
+        "slug": "Slug",
+        "bio": "Біографія",
+        "avatar": "Аватар",
+        "genres": "Жанри (через кому)",
+        "socialLinks": "Соціальні посилання (JSON)",
+        "socialLinksSection": "Соцмережі та контакти",
+        "sortOrder": "Порядок сортування",
+        "visible": "Видимий",
+        "social": {
+          "website": "URL вебсайту",
+          "instagram": "Instagram URL",
+          "facebook": "Facebook URL",
+          "youtube": "YouTube URL",
+          "tiktok": "TikTok URL",
+          "twitter": "Twitter / X URL",
+          "soundcloud": "SoundCloud URL",
+          "email": "Контактний Email",
+          "phone": "Телефон"
+        },
+        "musicLinksSection": "Музичні платформи",
+        "music": {
+          "spotify": "Spotify URL",
+          "apple_music": "Apple Music URL",
+          "amazon_music": "Amazon Music URL",
+          "soundcloud": "SoundCloud URL",
+          "beatport": "Beatport URL",
+          "youtube_music": "YouTube Music URL",
+          "tidal": "Tidal URL",
+          "deezer": "Deezer URL",
+          "bandcamp": "Bandcamp URL"
+        }
+      },
+      "validation": {
+        "required": "Ім'я та slug обов'язкові"
+      }
+    },
+    "videos": {
+      "title": "Відео",
+      "description": "Керуйте YouTube відео",
+      "addNew": "Додати відео",
+      "editTitle": "Редагувати відео",
+      "fields": {
+        "title": "Назва",
+        "youtubeUrl": "YouTube URL",
+        "description": "Опис",
+        "sortOrder": "Порядок сортування",
+        "visible": "Видимий"
+      },
+      "validation": {
+        "required": "Назва та URL обов'язкові"
+      }
+    },
+    "photos": {
+      "title": "Фото",
+      "description": "Керуйте фотогалереєю",
+      "addNew": "Додати фото",
+      "editTitle": "Редагувати фото",
+      "fields": {
+        "title": "Назва",
+        "image": "Зображення",
+        "caption": "Підпис",
+        "category": "Категорія",
+        "sortOrder": "Порядок сортування",
+        "visible": "Видимий"
+      },
+      "validation": {
+        "required": "Зображення обов'язкове"
+      }
+    },
+    "events": {
+      "title": "Події",
+      "description": "Керуйте подіями",
+      "addNew": "Додати подію",
+      "editTitle": "Редагувати подію",
+      "fields": {
+        "title": "Назва",
+        "date": "Дата",
+        "venue": "Місце",
+        "city": "Місто",
+        "description": "Опис",
+        "image": "Зображення",
+        "ticketLink": "Посилання на квитки",
+        "lineup": "Лайнап (через кому)",
+        "visible": "Видимий"
+      },
+      "validation": {
+        "required": "Назва та дата обов'язкові"
+      }
+    },
+    "partners": {
+      "title": "Партнери",
+      "description": "Керуйте друзями, партнерами та спонсорами",
+      "addNew": "Додати партнера",
+      "editTitle": "Редагувати партнера",
+      "fields": {
+        "name": "Назва",
+        "logo": "Логотип",
+        "websiteUrl": "URL сайту",
+        "category": "Категорія",
+        "sortOrder": "Порядок сортування",
+        "visible": "Видимий"
+      },
+      "categories": {
+        "friend": "Друг",
+        "partner": "Партнер",
+        "sponsor": "Спонсор"
+      },
+      "validation": {
+        "required": "Назва обов'язкова"
+      }
+    },
+    "messages": {
+      "title": "Повідомлення",
+      "description": "Заявки з контактної форми",
+      "empty": "Повідомлень поки немає.",
+      "markRead": "Позначити прочитаним",
+      "markUnread": "Позначити непрочитаним",
+      "delete": "Видалити",
+      "from": "Від",
+      "subject": "Тема",
+      "status": "Статус",
+      "noSubject": "(без теми)"
+    },
+    "common": {
+      "save": "Зберегти",
+      "saving": "Збереження...",
+      "cancel": "Скасувати",
+      "delete": "Видалити",
+      "edit": "Редагувати",
+      "add": "Додати",
+      "close": "Закрити",
+      "confirm": "Підтвердити",
+      "search": "Пошук...",
+      "noResults": "Результатів немає.",
+      "loading": "Завантаження...",
+      "yes": "Так",
+      "no": "Ні",
+      "hidden": "Приховано",
+      "deleteConfirmation": "Цю дію неможливо скасувати."
+    },
+    "langTabs": {
+      "en": "EN",
+      "uk": "UK"
+    }
+  },
+  "toast": {
+    "saved": "Успішно збережено",
+    "deleted": "Успішно видалено",
+    "saveFailed": "Не вдалося зберегти",
+    "deleteFailed": "Не вдалося видалити",
+    "markedRead": "Позначено як прочитане",
+    "markedUnread": "Позначено як непрочитане",
+    "uploadFailed": "Не вдалося завантажити файл",
+    "fileTooLarge": "Файл занадто великий (макс. 5МБ)"
+  },
+  "fileUpload": {
+    "dropzone": "Перетягніть зображення сюди або натисніть для вибору",
+    "change": "Змінити",
+    "remove": "Видалити",
+    "maxSize": "Максимальний розмір: 5МБ"
+  },
+  "language": {
+    "en": "English",
+    "uk": "Українська"
+  }
+}

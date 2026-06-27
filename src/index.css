@@ -1,0 +1,202 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/spacemono/v13/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/spacemono/v13/i7dMIFZifjKcF5UAWdDRaPpZYFKQHw.woff2') format('woff2');
+}
+
+@theme inline {
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-neon: var(--neon);
+  --color-neon-foreground: var(--neon-foreground);
+  --color-neon-glow: var(--neon-glow);
+  --color-surface: var(--surface);
+}
+
+:root {
+  --radius: 0.5rem;
+  --neon: oklch(0.85 0.25 155);
+  --neon-foreground: oklch(0.12 0.02 155);
+  --neon-glow: oklch(0.7 0.3 155 / 40%);
+  --surface: oklch(0.18 0.005 260);
+  --background: oklch(0.08 0.01 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.12 0.01 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.14 0.01 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.85 0.25 155);
+  --primary-foreground: oklch(0.12 0.02 155);
+  --secondary: oklch(0.18 0.01 260);
+  --secondary-foreground: oklch(0.9 0.01 260);
+  --muted: oklch(0.18 0.01 260);
+  --muted-foreground: oklch(0.6 0.02 260);
+  --accent: oklch(0.22 0.02 260);
+  --accent-foreground: oklch(0.95 0.01 260);
+  --destructive: oklch(0.6 0.25 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.25 0.02 260);
+  --input: oklch(0.2 0.02 260);
+  --ring: oklch(0.85 0.25 155);
+  --chart-1: oklch(0.85 0.25 155);
+  --chart-2: oklch(0.7 0.2 200);
+  --chart-3: oklch(0.6 0.25 300);
+  --chart-4: oklch(0.8 0.2 60);
+  --chart-5: oklch(0.65 0.2 340);
+  --sidebar: oklch(0.1 0.01 260);
+  --sidebar-foreground: oklch(0.9 0.01 260);
+  --sidebar-primary: oklch(0.85 0.25 155);
+  --sidebar-primary-foreground: oklch(0.12 0.02 155);
+  --sidebar-accent: oklch(0.18 0.02 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.25 0.02 260);
+  --sidebar-ring: oklch(0.85 0.25 155);
+}
+
+.dark {
+  --neon: oklch(0.85 0.25 155);
+  --neon-foreground: oklch(0.12 0.02 155);
+  --neon-glow: oklch(0.7 0.3 155 / 40%);
+  --surface: oklch(0.18 0.005 260);
+  --background: oklch(0.08 0.01 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.12 0.01 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.14 0.01 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.85 0.25 155);
+  --primary-foreground: oklch(0.12 0.02 155);
+  --secondary: oklch(0.18 0.01 260);
+  --secondary-foreground: oklch(0.9 0.01 260);
+  --muted: oklch(0.18 0.01 260);
+  --muted-foreground: oklch(0.6 0.02 260);
+  --accent: oklch(0.22 0.02 260);
+  --accent-foreground: oklch(0.95 0.01 260);
+  --destructive: oklch(0.6 0.25 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.25 0.02 260);
+  --input: oklch(0.2 0.02 260);
+  --ring: oklch(0.85 0.25 155);
+  --chart-1: oklch(0.85 0.25 155);
+  --chart-2: oklch(0.7 0.2 200);
+  --chart-3: oklch(0.6 0.25 300);
+  --chart-4: oklch(0.8 0.2 60);
+  --chart-5: oklch(0.65 0.2 340);
+  --sidebar: oklch(0.1 0.01 260);
+  --sidebar-foreground: oklch(0.9 0.01 260);
+  --sidebar-primary: oklch(0.85 0.25 155);
+  --sidebar-primary-foreground: oklch(0.12 0.02 155);
+  --sidebar-accent: oklch(0.18 0.02 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.25 0.02 260);
+  --sidebar-ring: oklch(0.85 0.25 155);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-mono);
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.3; }
+  94% { opacity: 1; }
+  96% { opacity: 0.6; }
+  97% { opacity: 1; }
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-neon-flicker {
+  animation: neon-flicker 4s ease-in-out infinite;
+}
+
+.neon-text {
+  text-shadow: 0 0 7px var(--neon-glow), 0 0 20px var(--neon-glow), 0 0 40px var(--neon-glow);
+}
+
+.neon-border {
+  box-shadow: 0 0 5px var(--neon-glow), inset 0 0 5px var(--neon-glow);
+}
+
+.glass {
+  backdrop-filter: blur(12px) saturate(180%);
+  background-color: oklch(0.1 0.01 260 / 70%);
+}
