@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "mymcp": {
-      "enabled": true
+      "enabled": false
     }
   }
 }
