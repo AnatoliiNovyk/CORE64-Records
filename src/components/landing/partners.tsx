@@ -52,9 +52,9 @@ export default function PartnersSection() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center gap-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-56 w-48 shrink-0 rounded-xl" />
+          <div className="flex justify-center gap-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square w-40 shrink-0 rounded-xl sm:w-48 md:w-56 lg:w-64" />
             ))}
           </div>
         ) : allPartners.length > 0 ? (
@@ -63,32 +63,32 @@ export default function PartnersSection() {
             setApi={setApi}
             className="w-full"
           >
-            <CarouselContent className="-ml-8">
+            <CarouselContent className="-ml-12">
               {duplicated.map((partner, idx) => (
                 <CarouselItem
                   key={`${partner.id}-${idx}`}
-                  className="basis-full pl-8 sm:basis-1/2 md:basis-1/3 lg:basis-1/5"
+                  className="basis-full pl-12 sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
                 >
                   <a
                     href={partner.website_url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex h-56 w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card/50 p-6 transition-all hover:border-primary/30 hover:shadow-[0_0_15px_rgba(0,255,128,0.08)]"
+                    className="group flex aspect-square w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card/50 p-8 transition-all hover:border-primary/30 hover:shadow-[0_0_15px_rgba(0,255,128,0.08)]"
                   >
                     {partner.logo_url ? (
                       <img
                         src={partner.logo_url}
                         alt={partner.name}
-                        className="h-20 w-20 object-contain opacity-60 transition-opacity group-hover:opacity-100"
+                        className="h-[75%] w-[75%] object-contain opacity-60 transition-opacity group-hover:opacity-100"
                       />
                     ) : (
-                      <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted/30">
-                        <span className="font-mono text-2xl font-bold text-muted-foreground/50">
+                      <div className="flex h-[75%] w-[75%] items-center justify-center rounded-lg bg-muted/30">
+                        <span className="font-mono text-4xl font-bold text-muted-foreground/50">
                           {partner.name.charAt(0)}
                         </span>
                       </div>
                     )}
-                    <span className="mt-2 text-center font-mono text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+                    <span className="mt-2 text-center font-mono text-base font-medium text-muted-foreground transition-colors group-hover:text-foreground">
                       {getLocalizedField(partner, 'name', i18n.language)}
                     </span>
                   </a>
