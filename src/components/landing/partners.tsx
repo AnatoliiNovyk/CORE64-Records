@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { usePartners, useContentValue } from '@/hooks/use-data'
+import { usePartners, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Partner } from '@/types/database'
 
 export default function PartnersSection() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const title = useContentValue('partners_title', t('partners.title'))
   const { data: partners, isLoading } = usePartners()
 
@@ -36,7 +36,7 @@ export default function PartnersSection() {
                 />
               ) : (
                 <span className="font-mono text-xs text-muted-foreground group-hover:text-foreground">
-                  {partner.name}
+                  {getLocalizedField(partner, 'name', i18n.language)}
                 </span>
               )}
             </a>

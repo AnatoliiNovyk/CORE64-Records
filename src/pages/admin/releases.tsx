@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FileUpload } from '@/components/ui/file-upload'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LanguageTabs } from '@/components/admin/language-tabs'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -149,12 +151,17 @@ export default function AdminReleases() {
               )}
               <Input placeholder={t('admin.releases.fields.catalogNumber')} value={editing.catalog_number || ''} onChange={e => setEditing({ ...editing, catalog_number: e.target.value })} />
               <Input placeholder={t('admin.releases.fields.artistName')} value={editing.artist_name || ''} onChange={e => setEditing({ ...editing, artist_name: e.target.value })} />
-              <select value={editing.genre || 'dnb'} onChange={e => setEditing({ ...editing, genre: e.target.value as Release['genre'] })} className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm">
-                <option value="neurofunk">{t('admin.releases.genres.neurofunk')}</option>
-                <option value="dnb">{t('admin.releases.genres.dnb')}</option>
-                <option value="breakbeat">{t('admin.releases.genres.breakbeat')}</option>
-                <option value="techstep">{t('admin.releases.genres.techstep')}</option>
-              </select>
+              <Select value={editing.genre || 'dnb'} onValueChange={v => setEditing({ ...editing, genre: v as Release['genre'] })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="neurofunk">{t('admin.releases.genres.neurofunk')}</SelectItem>
+                  <SelectItem value="dnb">{t('admin.releases.genres.dnb')}</SelectItem>
+                  <SelectItem value="breakbeat">{t('admin.releases.genres.breakbeat')}</SelectItem>
+                  <SelectItem value="techstep">{t('admin.releases.genres.techstep')}</SelectItem>
+                </SelectContent>
+              </Select>
               <Input type="date" value={editing.release_date || ''} onChange={e => setEditing({ ...editing, release_date: e.target.value })} />
               <div>
                 <label className="text-sm text-muted-foreground mb-1 block">{t('admin.releases.fields.coverArt')}</label>
@@ -167,10 +174,10 @@ export default function AdminReleases() {
               )}
               <Input placeholder={t('admin.releases.fields.buyLink')} value={editing.buy_link || ''} onChange={e => setEditing({ ...editing, buy_link: e.target.value })} />
               <Input type="number" placeholder={t('admin.releases.fields.sortOrder')} value={editing.sort_order ?? 0} onChange={e => setEditing({ ...editing, sort_order: +e.target.value })} />
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={editing.is_visible ?? true} onChange={e => setEditing({ ...editing, is_visible: e.target.checked })} />
-                {t('admin.releases.fields.visible')}
-              </label>
+              <div className="flex items-center gap-2">
+                <Switch checked={editing.is_visible ?? true} onCheckedChange={v => setEditing({ ...editing, is_visible: v })} />
+                <span className="text-sm">{t('admin.releases.fields.visible')}</span>
+              </div>
               <Button onClick={handleSave} disabled={uploading} className="w-full font-mono">
                 {uploading ? t('admin.common.saving') : t('admin.common.save')}
               </Button>

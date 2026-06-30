@@ -4,6 +4,7 @@ import { useAdminVideos, useUpsertMutation, useDeleteMutation } from '@/hooks/us
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -96,7 +97,10 @@ export default function AdminVideos() {
                 <Textarea placeholder={t('admin.videos.fields.description')} value={editing.translations?.uk?.description || ''} onChange={e => setEditing({ ...editing, translations: { ...(editing.translations || {}), uk: { ...(editing.translations?.uk || {}), description: e.target.value } } })} rows={3} />
               )}
               <Input type="number" placeholder={t('admin.videos.fields.sortOrder')} value={editing.sort_order ?? 0} onChange={e => setEditing({ ...editing, sort_order: +e.target.value })} />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_visible ?? true} onChange={e => setEditing({ ...editing, is_visible: e.target.checked })} /> {t('admin.videos.fields.visible')}</label>
+              <div className="flex items-center gap-2">
+                <Switch checked={editing.is_visible ?? true} onCheckedChange={v => setEditing({ ...editing, is_visible: v })} />
+                <span className="text-sm">{t('admin.videos.fields.visible')}</span>
+              </div>
               <Button onClick={handleSave} className="w-full font-mono">{t('admin.common.save')}</Button>
             </div>
           )}

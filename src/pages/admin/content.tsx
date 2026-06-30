@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSiteContent, useUpsertMutation } from '@/hooks/use-data'
 import { useFileUpload } from '@/hooks/use-file-upload'
@@ -10,18 +10,99 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { FileUpload } from '@/components/ui/file-upload'
 import { LanguageTabs } from '@/components/admin/language-tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Save, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import type { SiteContent } from '@/types/database'
+
+interface ContentItemProps {
+  item: SiteContent
+  onSave: (item: SiteContent, valueEn: string | undefined, valueUk: string | undefined, file: File | null) => void
+  saving: boolean
+}
+
+function ContentItem({ item, onSave, saving }: ContentItemProps) {
+  const [lang, setLang] = useState<'en' | 'uk'>('en')
+  const [valueEn, setValueEn] = useState(item.value)
+  const [valueUk, setValueUk] = useState(item.value_uk || '')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [dirty, setDirty] = useState(false)
+
+  const handleEnChange = useCallback((val: string) => {
+    setValueEn(val)
+    setDirty(true)
+  }, [])
+
+  const handleUkChange = useCallback((val: string) => {
+    setValueUk(val)
+    setDirty(true)
+  }, [])
+
+  const handleImageChange = useCallback((file: File | null) => {
+    setImageFile(file)
+    if (file) setDirty(true)
+  }, [])
+
+  const handleSave = () => {
+    if (!dirty) return
+    const enChanged = valueEn !== item.value ? valueEn : undefined
+    const ukChanged = valueUk !== (item.value_uk || '') ? valueUk : undefined
+    onSave(item, enChanged, ukChanged, imageFile)
+    setDirty(false)
+    setImageFile(null)
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start">
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-muted-foreground">{item.section_key}</span>
+          <Badge variant="secondary" className="text-[10px]">{item.content_type}</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{item.label}</p>
+        {item.content_type === 'image' ? (
+          <div className="mt-2">
+            <FileUpload value={item.value} onChange={handleImageChange} />
+          </div>
+        ) : (
+          <div className="mt-2">
+            <LanguageTabs active={lang} onChange={setLang} />
+            {lang === 'en' ? (
+              <Textarea
+                value={valueEn}
+                onChange={e => handleEnChange(e.target.value)}
+                rows={2}
+                className="mt-2 bg-secondary text-sm"
+              />
+            ) : (
+              <Textarea
+                value={valueUk}
+                onChange={e => handleUkChange(e.target.value)}
+                rows={2}
+                className="mt-2 bg-secondary text-sm"
+              />
+            )}
+          </div>
+        )}
+      </div>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={handleSave}
+        disabled={!dirty || saving}
+      >
+        <Save className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+}
 
 export default function AdminContent() {
   const { t } = useTranslation()
   const { data: content, isLoading } = useSiteContent()
   const upsert = useUpsertMutation('site_content', 'site_content')
   const { upload, uploading } = useFileUpload('content')
-  const [editValues, setEditValues] = useState<Record<string, string>>({})
-  const [imageFiles, setImageFiles] = useState<Record<string, File | null>>({})
-  const [activeLanguage, setActiveLanguage] = useState<'en' | 'uk'>('en')
   const [newKey, setNewKey] = useState('')
   const [newLabel, setNewLabel] = useState('')
   const [newValueEn, setNewValueEn] = useState('')
@@ -31,33 +112,30 @@ export default function AdminContent() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newLanguage, setNewLanguage] = useState<'en' | 'uk'>('en')
 
-  const handleSave = async (item: { id: string; section_key: string; content_type: string; label: string; sort_order: number; value_uk?: string }) => {
-    let value = editValues[`${item.section_key}_en`]
-    let value_uk = editValues[`${item.section_key}_uk`]
-    const file = imageFiles[item.section_key]
-
+  const handleItemSave = async (item: SiteContent, valueEn: string | undefined, valueUk: string | undefined, file: File | null) => {
+    let uploadedUrl: string | undefined
     if (file) {
       const url = await upload(file)
       if (!url) { toast.error(t('toast.uploadFailed')); return }
-      value = url
-      setImageFiles(prev => ({ ...prev, [item.section_key]: null }))
+      uploadedUrl = url
     }
 
-    if (value === undefined && value_uk === undefined && !file) return
     try {
-      const updateData: Record<string, any> = { ...item }
-      if (value !== undefined) updateData.value = value
-      if (value_uk !== undefined) updateData.value_uk = value_uk
-      if (file) delete updateData.value_uk
-
+      const updateData: Record<string, unknown> = {
+        id: item.id,
+        section_key: item.section_key,
+        content_type: item.content_type,
+        label: item.label,
+        sort_order: item.sort_order,
+      }
+      if (uploadedUrl) {
+        updateData.value = uploadedUrl
+      } else {
+        if (valueEn !== undefined) updateData.value = valueEn
+        if (valueUk !== undefined) updateData.value_uk = valueUk
+      }
       await upsert.mutateAsync(updateData)
       toast.success(`${t('toast.saved')}: ${item.label || item.section_key}`)
-      setEditValues(prev => {
-        const next = { ...prev }
-        delete next[`${item.section_key}_en`]
-        delete next[`${item.section_key}_uk`]
-        return next
-      })
     } catch {
       toast.error(t('toast.saveFailed'))
     }
@@ -104,7 +182,7 @@ export default function AdminContent() {
     )
   }
 
-  const sections = new Map<string, typeof content>()
+  const sections = new Map<string, SiteContent[]>()
   content?.forEach(item => {
     const prefix = item.section_key.split('_')[0]
     if (!sections.has(prefix)) sections.set(prefix, [])
@@ -131,39 +209,36 @@ export default function AdminContent() {
             <div className="space-y-3">
               <Input placeholder={t('admin.content.sectionKeyPlaceholder')} value={newKey} onChange={e => setNewKey(e.target.value)} />
               <Input placeholder={t('admin.content.labelPlaceholder')} value={newLabel} onChange={e => setNewLabel(e.target.value)} />
-              <select
-                value={newType}
-                onChange={e => setNewType(e.target.value)}
-                className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm"
-              >
-                <option value="text">{t('admin.content.contentTypes.text')}</option>
-                <option value="image">{t('admin.content.contentTypes.image')}</option>
-                <option value="html">{t('admin.content.contentTypes.html')}</option>
-              </select>
+              <Select value={newType} onValueChange={setNewType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">{t('admin.content.contentTypes.text')}</SelectItem>
+                  <SelectItem value="image">{t('admin.content.contentTypes.image')}</SelectItem>
+                  <SelectItem value="html">{t('admin.content.contentTypes.html')}</SelectItem>
+                </SelectContent>
+              </Select>
               {newType === 'image' ? (
                 <FileUpload value={null} onChange={setNewImageFile} />
               ) : (
                 <div className="space-y-3">
-                  <div>
-                    <LanguageTabs active={newLanguage} onChange={setNewLanguage} />
-                    {newLanguage === 'en' ? (
-                      <Textarea
-                        placeholder={t('admin.content.value')}
-                        value={newValueEn}
-                        onChange={e => setNewValueEn(e.target.value)}
-                        rows={3}
-                        className="mt-2"
-                      />
-                    ) : (
-                      <Textarea
-                        placeholder={t('admin.content.value')}
-                        value={newValueUk}
-                        onChange={e => setNewValueUk(e.target.value)}
-                        rows={3}
-                        className="mt-2"
-                      />
-                    )}
-                  </div>
+                  <LanguageTabs active={newLanguage} onChange={setNewLanguage} />
+                  {newLanguage === 'en' ? (
+                    <Textarea
+                      placeholder={t('admin.content.value')}
+                      value={newValueEn}
+                      onChange={e => setNewValueEn(e.target.value)}
+                      rows={3}
+                    />
+                  ) : (
+                    <Textarea
+                      placeholder={t('admin.content.value')}
+                      value={newValueUk}
+                      onChange={e => setNewValueUk(e.target.value)}
+                      rows={3}
+                    />
+                  )}
                 </div>
               )}
               <Button onClick={handleAdd} disabled={uploading} className="w-full font-mono">
@@ -183,54 +258,13 @@ export default function AdminContent() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {items?.map(item => (
-                <div key={item.id} className="flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground">{item.section_key}</span>
-                      <Badge variant="secondary" className="text-[10px]">{item.content_type}</Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{item.label}</p>
-                    {item.content_type === 'image' ? (
-                      <div className="mt-2">
-                        <FileUpload
-                          value={item.value}
-                          onChange={file => {
-                            setImageFiles(prev => ({ ...prev, [item.section_key]: file }))
-                            if (file) setEditValues(prev => ({ ...prev, [item.section_key]: '__pending_upload__' }))
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <LanguageTabs active={activeLanguage} onChange={setActiveLanguage} />
-                        {activeLanguage === 'en' ? (
-                          <Textarea
-                            defaultValue={item.value}
-                            onChange={e => setEditValues(prev => ({ ...prev, [`${item.section_key}_en`]: e.target.value }))}
-                            rows={2}
-                            className="mt-2 bg-secondary text-sm"
-                          />
-                        ) : (
-                          <Textarea
-                            defaultValue={item.value_uk || ''}
-                            onChange={e => setEditValues(prev => ({ ...prev, [`${item.section_key}_uk`]: e.target.value }))}
-                            rows={2}
-                            className="mt-2 bg-secondary text-sm"
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleSave(item)}
-                    disabled={editValues[`${item.section_key}_en`] === undefined && editValues[`${item.section_key}_uk`] === undefined && !imageFiles[item.section_key]}
-                  >
-                    <Save className="h-4 w-4" />
-                  </Button>
-                </div>
+              {items.map(item => (
+                <ContentItem
+                  key={item.id}
+                  item={item}
+                  onSave={handleItemSave}
+                  saving={uploading}
+                />
               ))}
             </CardContent>
           </Card>

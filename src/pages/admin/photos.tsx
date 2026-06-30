@@ -4,6 +4,7 @@ import { useAdminPhotos, useUpsertMutation, useDeleteMutation } from '@/hooks/us
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -103,7 +104,10 @@ export default function AdminPhotos() {
               )}
               <Input placeholder={t('admin.photos.fields.category')} value={editing.category || 'general'} onChange={e => setEditing({ ...editing, category: e.target.value })} />
               <Input type="number" placeholder={t('admin.photos.fields.sortOrder')} value={editing.sort_order ?? 0} onChange={e => setEditing({ ...editing, sort_order: +e.target.value })} />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_visible ?? true} onChange={e => setEditing({ ...editing, is_visible: e.target.checked })} /> {t('admin.photos.fields.visible')}</label>
+              <div className="flex items-center gap-2">
+                <Switch checked={editing.is_visible ?? true} onCheckedChange={v => setEditing({ ...editing, is_visible: v })} />
+                <span className="text-sm">{t('admin.photos.fields.visible')}</span>
+              </div>
               <Button onClick={handleSave} disabled={uploading} className="w-full font-mono">{uploading ? t('admin.common.saving') : t('admin.common.save')}</Button>
             </div>
           )}

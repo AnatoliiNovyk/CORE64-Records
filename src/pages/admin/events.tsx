@@ -5,6 +5,7 @@ import { useFileUpload } from '@/hooks/use-file-upload'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -138,7 +139,10 @@ export default function AdminEvents() {
               </div>
               <Input placeholder={t('admin.events.fields.ticketLink')} value={editing.ticket_link || ''} onChange={e => setEditing({ ...editing, ticket_link: e.target.value })} />
               <Input placeholder={t('admin.events.fields.lineup')} value={lineupInput} onChange={e => setLineupInput(e.target.value)} />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_visible ?? true} onChange={e => setEditing({ ...editing, is_visible: e.target.checked })} /> {t('admin.events.fields.visible')}</label>
+              <div className="flex items-center gap-2">
+                <Switch checked={editing.is_visible ?? true} onCheckedChange={v => setEditing({ ...editing, is_visible: v })} />
+                <span className="text-sm">{t('admin.events.fields.visible')}</span>
+              </div>
               <Button onClick={handleSave} disabled={uploading} className="w-full font-mono">{uploading ? t('admin.common.saving') : t('admin.common.save')}</Button>
             </div>
           )}

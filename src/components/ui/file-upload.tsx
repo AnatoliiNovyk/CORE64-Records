@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -18,6 +18,12 @@ export function FileUpload({ value, onChange, accept = 'image/*', className }: F
   const [dragOver, setDragOver] = useState(false)
 
   const displayUrl = preview || value || null
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const handleFile = useCallback((file: File | null) => {
     if (file) {

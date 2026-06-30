@@ -5,11 +5,13 @@ import { useFileUpload } from '@/hooks/use-file-upload'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { FileUpload } from '@/components/ui/file-upload'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LanguageTabs } from '@/components/admin/language-tabs'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -76,7 +78,7 @@ export default function AdminPartners() {
               {partners?.map(p => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell><Badge variant="secondary">{p.category}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary">{t(`admin.partners.categories.${p.category}`)}</Badge></TableCell>
                   <TableCell className="max-w-36 truncate text-xs">{p.website_url}</TableCell>
                   <TableCell>{p.is_visible ? t('admin.common.yes') : t('admin.common.no')}</TableCell>
                   <TableCell>
@@ -107,18 +109,26 @@ export default function AdminPartners() {
               ) : (
                 <Input placeholder={t('admin.partners.fields.name')} value={editing.translations?.uk?.name || ''} onChange={e => setEditing({ ...editing, translations: { ...(editing.translations || {}), uk: { ...(editing.translations?.uk || {}), name: e.target.value } } })} />
               )}
-              <select value={editing.category || 'partner'} onChange={e => setEditing({ ...editing, category: e.target.value as Partner['category'] })} className="w-full rounded-md border border-input bg-secondary px-3 py-2 text-sm">
-                <option value="friend">{t('admin.partners.categories.friend')}</option>
-                <option value="partner">{t('admin.partners.categories.partner')}</option>
-                <option value="sponsor">{t('admin.partners.categories.sponsor')}</option>
-              </select>
+              <Select value={editing.category || 'partner'} onValueChange={v => setEditing({ ...editing, category: v as Partner['category'] })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="friend">{t('admin.partners.categories.friend')}</SelectItem>
+                  <SelectItem value="partner">{t('admin.partners.categories.partner')}</SelectItem>
+                  <SelectItem value="sponsor">{t('admin.partners.categories.sponsor')}</SelectItem>
+                </SelectContent>
+              </Select>
               <div>
                 <label className="text-sm text-muted-foreground mb-1 block">{t('admin.partners.fields.logo')}</label>
                 <FileUpload value={editing.logo_url} onChange={setLogoFile} />
               </div>
               <Input placeholder={t('admin.partners.fields.websiteUrl')} value={editing.website_url || ''} onChange={e => setEditing({ ...editing, website_url: e.target.value })} />
               <Input type="number" placeholder={t('admin.partners.fields.sortOrder')} value={editing.sort_order ?? 0} onChange={e => setEditing({ ...editing, sort_order: +e.target.value })} />
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.is_visible ?? true} onChange={e => setEditing({ ...editing, is_visible: e.target.checked })} /> {t('admin.partners.fields.visible')}</label>
+              <div className="flex items-center gap-2">
+                <Switch checked={editing.is_visible ?? true} onCheckedChange={v => setEditing({ ...editing, is_visible: v })} />
+                <span className="text-sm">{t('admin.partners.fields.visible')}</span>
+              </div>
               <Button onClick={handleSave} disabled={uploading} className="w-full font-mono">{uploading ? t('admin.common.saving') : t('admin.common.save')}</Button>
             </div>
           )}
