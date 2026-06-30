@@ -43,8 +43,8 @@ export default function PartnersSection() {
   return (
     <section id="partners" className="relative py-24 lg:py-32">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-card/20 to-background" />
-      <div className="relative mx-auto max-w-6xl px-4">
-        <div className="mb-12 text-center">
+      <div className="relative mx-auto max-w-7xl px-4">
+        <div className="mb-16 text-center">
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">{t('partners.prefix')}</p>
           <h2 className="mt-2 font-mono text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {title}
@@ -52,9 +52,9 @@ export default function PartnersSection() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-32 shrink-0 rounded-md" />
+          <div className="flex justify-center gap-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-56 w-48 shrink-0 rounded-xl" />
             ))}
           </div>
         ) : allPartners.length > 0 ? (
@@ -63,29 +63,34 @@ export default function PartnersSection() {
             setApi={setApi}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
+            <CarouselContent className="-ml-8">
               {duplicated.map((partner, idx) => (
                 <CarouselItem
                   key={`${partner.id}-${idx}`}
-                  className="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+                  className="basis-full pl-8 sm:basis-1/2 md:basis-1/3 lg:basis-1/5"
                 >
                   <a
                     href={partner.website_url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex h-20 w-full items-center justify-center rounded-md border border-border bg-card/50 p-3 transition-all hover:border-primary/30 hover:shadow-[0_0_10px_rgba(0,255,128,0.05)]"
+                    className="group flex h-56 w-full flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card/50 p-6 transition-all hover:border-primary/30 hover:shadow-[0_0_15px_rgba(0,255,128,0.08)]"
                   >
                     {partner.logo_url ? (
                       <img
                         src={partner.logo_url}
                         alt={partner.name}
-                        className="max-h-full max-w-full object-contain opacity-60 transition-opacity group-hover:opacity-100"
+                        className="h-20 w-20 object-contain opacity-60 transition-opacity group-hover:opacity-100"
                       />
                     ) : (
-                      <span className="font-mono text-xs text-muted-foreground transition-colors group-hover:text-foreground">
-                        {getLocalizedField(partner, 'name', i18n.language)}
-                      </span>
+                      <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted/30">
+                        <span className="font-mono text-2xl font-bold text-muted-foreground/50">
+                          {partner.name.charAt(0)}
+                        </span>
+                      </div>
                     )}
+                    <span className="mt-2 text-center font-mono text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+                      {getLocalizedField(partner, 'name', i18n.language)}
+                    </span>
                   </a>
                 </CarouselItem>
               ))}
