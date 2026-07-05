@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
-import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage } from '@/types/database'
+import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting } from '@/types/database'
 
 export function useSiteContent() {
   return useQuery({
@@ -287,6 +287,48 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKey] })
+    },
+  })
+}
+
+export function useSettings() {
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('settings').select('*')
+      if (error) throw error
+      return data as Setting[]
+    },
+  })
+}
+
+export function useSettingValue(key: string) {
+  return useQuery({
+    queryKey: ['setting', key],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', key)
+        .maybeSingle()
+      if (error) throw error
+      return data?.value ?? ''
+    },
+  })
+}
+
+export function useUpsertSetting() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
+      const { error } = await supabase
+        .from('settings')
+        .upsert({ key, value, updated_at: new Date().toISOString() })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] })
+      queryClient.invalidateQueries({ queryKey: ['setting'] })
     },
   })
 }

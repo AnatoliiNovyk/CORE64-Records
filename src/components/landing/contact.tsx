@@ -1,13 +1,30 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Send } from 'lucide-react'
-import { toast } from 'sonner'
+import { Send, CheckCircle2, XCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { useSubmitContact, useContentValue } from '@/hooks/use-data'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { useContentValue, useSettingValue } from '@/hooks/use-data'
+
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (cb: () => void) => void
+      execute: (siteKey: string, options: { action: string }) => Promise<string>
+    }
+  }
+}
 
 function useContactSchema() {
   const { t } = useTranslation()
@@ -26,29 +43,87 @@ type ContactForm = {
   message: string
 }
 
+type ModalState = { open: false } | { open: true; success: boolean; message: string }
+
 export default function ContactSection() {
   const { t } = useTranslation()
   const title = useContentValue('contact_title', t('contact.title'))
   const description = useContentValue('contact_description', t('contact.description'))
-  const submitContact = useSubmitContact()
+  const { data: recaptchaSiteKey } = useSettingValue('recaptcha_site_key')
   const contactSchema = useContactSchema()
+  const [modal, setModal] = useState<ModalState>({ open: false })
+  const scriptRef = useRef<HTMLScriptElement | null>(null)
+
+  // Inject reCAPTCHA v3 script when site key is available
+  useEffect(() => {
+    if (!recaptchaSiteKey) return
+    if (document.getElementById('recaptcha-script')) return
+
+    const script = document.createElement('script')
+    script.id = 'recaptcha-script'
+    script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`
+    script.async = true
+    document.head.appendChild(script)
+    scriptRef.current = script
+
+    return () => {
+      if (scriptRef.current && document.head.contains(scriptRef.current)) {
+        document.head.removeChild(scriptRef.current)
+      }
+    }
+  }, [recaptchaSiteKey])
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ContactForm>({
     resolver: zodResolver(contactSchema),
   })
 
   const onSubmit = async (data: ContactForm) => {
+    let recaptchaToken = ''
+
+    if (recaptchaSiteKey) {
+      try {
+        await new Promise<void>((resolve) => window.grecaptcha.ready(resolve))
+        recaptchaToken = await window.grecaptcha.execute(recaptchaSiteKey, { action: 'contact' })
+      } catch {
+        setModal({ open: true, success: false, message: t('contact.recaptchaError') })
+        return
+      }
+    }
+
     try {
-      await submitContact.mutateAsync({
-        name: data.name,
-        email: data.email,
-        subject: data.subject || null,
-        message: data.message,
-      })
-      toast.success(t('contact.success'))
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-contact`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            subject: data.subject || null,
+            message: data.message,
+            recaptcha_token: recaptchaToken,
+          }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        const errorKey =
+          result?.error === 'recaptcha_failed' || result?.error === 'recaptcha_missing'
+            ? 'contact.recaptchaError'
+            : 'contact.error'
+        setModal({ open: true, success: false, message: t(errorKey) })
+        return
+      }
+
+      setModal({ open: true, success: true, message: t('contact.successModal.body') })
       reset()
     } catch {
-      toast.error(t('contact.error'))
+      setModal({ open: true, success: false, message: t('contact.error') })
     }
   }
 
@@ -109,6 +184,33 @@ export default function ContactSection() {
           </Button>
         </form>
       </div>
+
+      <Dialog open={modal.open} onOpenChange={(open) => !open && setModal({ open: false })}>
+        <DialogContent className="bg-card sm:max-w-md">
+          <DialogHeader>
+            <div className="mb-2 flex justify-center">
+              {modal.open && modal.success ? (
+                <CheckCircle2 className="h-12 w-12 text-primary" />
+              ) : (
+                <XCircle className="h-12 w-12 text-destructive" />
+              )}
+            </div>
+            <DialogTitle className="text-center font-mono text-lg">
+              {modal.open && modal.success
+                ? t('contact.successModal.title')
+                : t('contact.errorModal.title')}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {modal.open ? modal.message : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setModal({ open: false })} className="font-mono">
+              {t('admin.common.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

@@ -83,6 +83,15 @@
     "sending": "Sending...",
     "success": "Message sent! We will get back to you soon.",
     "error": "Failed to send message. Please try again.",
+    "recaptchaError": "Security verification failed. Please try again.",
+    "successModal": {
+      "title": "Message Sent!",
+      "body": "Thank you for reaching out. We will get back to you as soon as possible."
+    },
+    "errorModal": {
+      "title": "Something went wrong",
+      "body": "Failed to send message. Please try again later."
+    },
     "validation": {
       "nameRequired": "Name is required",
       "nameMin": "Name must be at least 2 characters",
@@ -107,6 +116,7 @@
       "events": "Events",
       "partners": "Partners",
       "messages": "Messages",
+      "settings": "Settings",
       "management": "Management",
       "backToSite": "Back to Site",
       "logout": "Log out"
@@ -306,6 +316,18 @@
       "subject": "Subject",
       "status": "Status",
       "noSubject": "(no subject)"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage site-wide configuration and integrations",
+      "recaptchaSection": "Google reCAPTCHA v3",
+      "recaptchaDescription": "Configure Google reCAPTCHA v3 keys to protect the contact form from spam. Get your keys at google.com/recaptcha.",
+      "siteKey": "Site Key (public)",
+      "siteKeyPlaceholder": "6Lc... (public site key)",
+      "secretKey": "Secret Key (private)",
+      "secretKeyPlaceholder": "6Lc... (private secret key)",
+      "showSecret": "Show secret key",
+      "hideSecret": "Hide secret key"
     },
     "common": {
       "save": "Save",

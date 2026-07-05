@@ -15,6 +15,7 @@ const AdminPhotos = lazy(() => import("@/pages/admin/photos"))
 const AdminEvents = lazy(() => import("@/pages/admin/events"))
 const AdminPartners = lazy(() => import("@/pages/admin/partners"))
 const AdminMessages = lazy(() => import("@/pages/admin/messages"))
+const AdminSettings = lazy(() => import("@/pages/admin/settings"))
 
 function LazyFallback() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="events" element={<AdminEvents />} />
             <Route path="partners" element={<AdminPartners />} />
             <Route path="messages" element={<AdminMessages />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -101,3 +101,10 @@ export interface ContactMessage {
   is_read: boolean
   created_at: string
 }
+
+export interface Setting {
+  key: string
+  value: string
+  created_at: string
+  updated_at: string
+}

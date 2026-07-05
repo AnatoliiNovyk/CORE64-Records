@@ -11,6 +11,7 @@ import {
   CalendarDays,
   Handshake,
   Mail,
+  Settings2,
   LogOut,
   ExternalLink,
 } from 'lucide-react'
@@ -43,6 +44,7 @@ const NAV_KEYS = [
   { path: '/admin/events', key: 'events', icon: CalendarDays },
   { path: '/admin/partners', key: 'partners', icon: Handshake },
   { path: '/admin/messages', key: 'messages', icon: Mail },
+  { path: '/admin/settings', key: 'settings', icon: Settings2 },
 ]
 
 export default function AdminLayout() {
