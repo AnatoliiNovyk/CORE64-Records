@@ -1,11 +1,15 @@
 import { useTranslation } from 'react-i18next'
-import { useContentValue } from '@/hooks/use-data'
+import { useContentValue, useAboutStats } from '@/hooks/use-data'
 
 export default function AboutSection() {
   const { t } = useTranslation()
   const title = useContentValue('about_title', t('about.title'))
   const text = useContentValue('about_text', t('about.text'))
   const mission = useContentValue('about_mission', t('about.mission'))
+  const { data: stats } = useAboutStats()
+
+  const releasesValue = stats ? `${stats.releasesCount}` : t('about.stats.releasesValue')
+  const producersValue = stats ? `${stats.producersCount}` : t('about.stats.producersValue')
 
   return (
     <section id="about" className="relative py-24 lg:py-32">
@@ -27,8 +31,8 @@ export default function AboutSection() {
         </div>
         <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { value: t('about.stats.releasesValue'), label: t('about.stats.releases') },
-            { value: t('about.stats.producersValue'), label: t('about.stats.producers') },
+            { value: releasesValue, label: t('about.stats.releases') },
+            { value: producersValue, label: t('about.stats.producers') },
             { value: t('about.stats.yearsValue'), label: t('about.stats.years') },
             { value: t('about.stats.playsValue'), label: t('about.stats.plays') },
           ].map(stat => (

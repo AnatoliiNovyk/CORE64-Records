@@ -140,6 +140,24 @@ export function usePartners() {
   })
 }
 
+export function useAboutStats() {
+  return useQuery({
+    queryKey: ['about_stats'],
+    queryFn: async () => {
+      const [releasesRes, producersRes] = await Promise.all([
+        supabase.from('releases').select('*', { count: 'exact', head: true }).eq('is_visible', true),
+        supabase.from('producers').select('*', { count: 'exact', head: true }).eq('is_visible', true),
+      ])
+      if (releasesRes.error) throw releasesRes.error
+      if (producersRes.error) throw producersRes.error
+      return {
+        releasesCount: releasesRes.count ?? 0,
+        producersCount: producersRes.count ?? 0,
+      }
+    },
+  })
+}
+
 export function useSubmitContact() {
   return useMutation({
     mutationFn: async (msg: Omit<ContactMessage, 'id' | 'is_read' | 'created_at'>) => {
