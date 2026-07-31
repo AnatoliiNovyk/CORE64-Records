@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 interface AuthContextType {
   user: User | null
   session: Session | null
+  isAdmin: boolean
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
@@ -13,32 +14,55 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
+  isAdmin: false,
   loading: true,
   signIn: async () => ({ error: null }),
   signOut: async () => {},
 })
 
+async function checkIsAdmin(userId: string | undefined): Promise<boolean> {
+  if (!userId) return false
+  const { data, error } = await supabase.rpc('is_admin')
+  if (error) {
+    console.error('is_admin check failed:', error.message)
+    return false
+  }
+  return Boolean(data)
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const admin = await checkIsAdmin(session?.user?.id)
+      if (!mounted) return
       setSession(session)
       setUser(session?.user ?? null)
+      setIsAdmin(admin)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       ;(async () => {
+        const admin = await checkIsAdmin(session?.user?.id)
+        if (!mounted) return
         setSession(session)
         setUser(session?.user ?? null)
+        setIsAdmin(admin)
         setLoading(false)
       })()
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
@@ -48,10 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut()
+    setIsAdmin(false)
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

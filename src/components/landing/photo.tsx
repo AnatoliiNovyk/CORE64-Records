@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePhotos, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export default function PhotoSection() {
+const PhotoSection = memo(function PhotoSection() {
   const { t, i18n } = useTranslation()
   const title = useContentValue('photo_title', t('photo.title'))
   const { data: photos, isLoading } = usePhotos()
@@ -64,4 +64,6 @@ export default function PhotoSection() {
       </Dialog>
     </section>
   )
-}
+})
+
+export default PhotoSection

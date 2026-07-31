@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProducers, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Card, CardContent } from '@/components/ui/card'
@@ -57,7 +58,7 @@ function MusicIcon({ platform }: { platform: string }) {
   return <Headphones className="h-5 w-5" />
 }
 
-export default function ProducersSection() {
+const ProducersSection = memo(function ProducersSection() {
   const { t, i18n } = useTranslation()
   const title = useContentValue('producers_title', t('producers.title'))
   const { data: producers, isLoading } = useProducers()
@@ -161,4 +162,6 @@ export default function ProducersSection() {
       </div>
     </section>
   )
-}
+})
+
+export default ProducersSection

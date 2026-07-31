@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting } from '@/types/database'
@@ -20,10 +21,12 @@ export function useSiteContent() {
 export function useContentValue(key: string, fallback = '') {
   const { data } = useSiteContent()
   const { i18n } = useTranslation()
-  const item = data?.find(c => c.section_key === key)
-  if (!item) return fallback
-  if (i18n.language === 'uk' && item.value_uk) return item.value_uk
-  return item.value || fallback
+  return useMemo(() => {
+    const item = data?.find(c => c.section_key === key)
+    if (!item) return fallback
+    if (i18n.language === 'uk' && item.value_uk) return item.value_uk
+    return item.value || fallback
+  }, [data, key, i18n.language, fallback])
 }
 
 export function useLocalized<T extends { translations?: Record<string, Record<string, string>> }>(
@@ -32,11 +35,13 @@ export function useLocalized<T extends { translations?: Record<string, Record<st
   fallback = ''
 ): string {
   const { i18n } = useTranslation()
-  if (!item) return fallback
   const lang = i18n.language
-  const translated = item.translations?.[lang]?.[field]
-  if (translated) return translated
-  return (item as Record<string, unknown>)[field] as string || fallback
+  return useMemo(() => {
+    if (!item) return fallback
+    const translated = item.translations?.[lang]?.[field]
+    if (translated) return translated
+    return (item as Record<string, unknown>)[field] as string || fallback
+  }, [item, field, lang, fallback])
 }
 
 export function getLocalizedField<T extends { translations?: Record<string, Record<string, string>> }>(

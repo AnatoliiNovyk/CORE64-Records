@@ -49,15 +49,15 @@ const NAV_KEYS = [
 
 export default function AdminLayout() {
   const { t } = useTranslation()
-  const { user, loading, signOut } = useAuth()
+  const { user, isAdmin, loading, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && (!user || !isAdmin)) {
       navigate('/admin/login')
     }
-  }, [user, loading, navigate])
+  }, [user, isAdmin, loading, navigate])
 
   if (loading) {
     return (
@@ -67,7 +67,7 @@ export default function AdminLayout() {
     )
   }
 
-  if (!user) return null
+  if (!user || !isAdmin) return null
 
   return (
     <SidebarProvider>

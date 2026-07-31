@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useVideos, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -7,7 +8,7 @@ function getYouTubeId(url: string): string | null {
   return match ? match[1] : null
 }
 
-export default function VideoSection() {
+const VideoSection = memo(function VideoSection() {
   const { t, i18n } = useTranslation()
   const title = useContentValue('video_title', t('video.title'))
   const { data: videos, isLoading } = useVideos()
@@ -65,4 +66,6 @@ export default function VideoSection() {
       </div>
     </section>
   )
-}
+})
+
+export default VideoSection

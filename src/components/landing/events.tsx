@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Calendar, MapPin, Ticket } from 'lucide-react'
 import { useEvents, useContentValue, getLocalizedField } from '@/hooks/use-data'
@@ -8,7 +9,7 @@ import { format } from 'date-fns'
 import { uk } from 'date-fns/locale/uk'
 import { enUS } from 'date-fns/locale/en-US'
 
-export default function EventsSection() {
+const EventsSection = memo(function EventsSection() {
   const { t, i18n } = useTranslation()
   const title = useContentValue('events_title', t('events.title'))
   const { data: events, isLoading } = useEvents()
@@ -87,4 +88,6 @@ export default function EventsSection() {
       </div>
     </section>
   )
-}
+})
+
+export default EventsSection

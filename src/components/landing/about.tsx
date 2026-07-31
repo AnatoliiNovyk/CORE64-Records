@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useContentValue, useAboutStats } from '@/hooks/use-data'
 
-export default function AboutSection() {
+const AboutSection = memo(function AboutSection() {
   const { t } = useTranslation()
   const title = useContentValue('about_title', t('about.title'))
   const text = useContentValue('about_text', t('about.text'))
@@ -45,4 +46,6 @@ export default function AboutSection() {
       </div>
     </section>
   )
-}
+})
+
+export default AboutSection

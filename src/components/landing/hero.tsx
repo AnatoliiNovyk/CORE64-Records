@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useContentValue } from '@/hooks/use-data'
 
-export default function HeroSection() {
+const HeroSection = memo(function HeroSection() {
   const { t } = useTranslation()
   const title = useContentValue('home_hero_title', t('hero.title'))
   const subtitle = useContentValue('home_hero_subtitle', t('hero.subtitle'))
@@ -46,4 +47,6 @@ export default function HeroSection() {
       </div>
     </section>
   )
-}
+})
+
+export default HeroSection

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,7 @@ const GENRE_COLORS: Record<string, string> = {
   techstep: 'bg-chart-4/20 text-chart-4',
 }
 
-export default function ReleasesSection() {
+const ReleasesSection = memo(function ReleasesSection() {
   const { t, i18n } = useTranslation()
   const title = useContentValue('releases_title', t('releases.title'))
   const { data: releases, isLoading } = useReleases()
@@ -134,4 +134,6 @@ export default function ReleasesSection() {
       </Dialog>
     </section>
   )
-}
+})
+
+export default ReleasesSection
