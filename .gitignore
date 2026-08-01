@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment files — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# Supabase CLI local state (project ref, pooler config)
+supabase/.temp
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

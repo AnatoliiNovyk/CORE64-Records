@@ -64,7 +64,7 @@ export function useReleases() {
         .eq('is_visible', true)
         .order('sort_order')
       if (error) throw error
-      const releases = data as Release[]
+      const releases = (data ?? []) as Release[]
       releases.forEach(r => {
         r.tracks?.sort((a, b) => a.track_number - b.track_number)
       })
@@ -167,14 +167,9 @@ export function useAboutStats() {
   })
 }
 
-export function useSubmitContact() {
-  return useMutation({
-    mutationFn: async (msg: Omit<ContactMessage, 'id' | 'is_read' | 'created_at'>) => {
-      const { error } = await supabase.from('contact_messages').insert(msg)
-      if (error) throw error
-    },
-  })
-}
+// Contact submissions intentionally have no client-side hook: they go through
+// the submit-contact edge function, which owns rate limiting and reCAPTCHA.
+// Anonymous INSERT on contact_messages is revoked at the RLS level.
 
 export function useAdminReleases() {
   return useQuery({
@@ -185,7 +180,7 @@ export function useAdminReleases() {
         .select('*, tracks(*)')
         .order('sort_order')
       if (error) throw error
-      const releases = data as Release[]
+      const releases = (data ?? []) as Release[]
       releases.forEach(r => {
         r.tracks?.sort((a, b) => a.track_number - b.track_number)
       })

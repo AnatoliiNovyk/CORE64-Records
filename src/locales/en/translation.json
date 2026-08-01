@@ -97,7 +97,8 @@
       "nameMin": "Name must be at least 2 characters",
       "emailRequired": "Valid email is required",
       "messageMin": "Message must be at least 10 characters"
-    }
+    },
+    "rateLimited": "Too many messages sent. Please wait a few minutes and try again."
   },
   "footer": {
     "rights": "All rights reserved",
@@ -403,5 +404,9 @@
       "ep": "EP",
       "album": "Album"
     }
+  },
+  "config": {
+    "title": "Configuration error",
+    "body": "The site is not connected to its database. Please contact the administrator."
   }
 }

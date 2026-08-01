@@ -90,38 +90,47 @@ export default function ContactSection() {
       }
     }
 
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    if (!supabaseUrl) {
+      setModal({ open: true, success: false, message: t('config.body') })
+      return
+    }
+
+    // Submissions always go through the edge function: it owns rate limiting,
+    // reCAPTCHA verification and length validation. There is deliberately no
+    // direct-insert fallback, which would bypass all three.
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-contact`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            name: data.name,
-            email: data.email,
-            subject: data.subject || null,
-            message: data.message,
-            recaptcha_token: recaptchaToken,
-          }),
-        }
-      )
+      const response = await fetch(`${supabaseUrl}/functions/v1/submit-contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          subject: data.subject || null,
+          message: data.message,
+          recaptcha_token: recaptchaToken,
+        }),
+      })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        const errorKey =
-          result?.error === 'recaptcha_failed' || result?.error === 'recaptcha_missing'
-            ? 'contact.recaptchaError'
-            : 'contact.error'
-        setModal({ open: true, success: false, message: t(errorKey) })
+      if (response.ok) {
+        setModal({ open: true, success: true, message: t('contact.successModal.body') })
+        reset()
         return
       }
 
-      setModal({ open: true, success: true, message: t('contact.successModal.body') })
-      reset()
+      const result = await response.json().catch(() => ({}))
+      if (result?.error === 'recaptcha_failed' || result?.error === 'recaptcha_missing') {
+        setModal({ open: true, success: false, message: t('contact.recaptchaError') })
+        return
+      }
+      if (result?.error === 'rate_limited' || response.status === 429) {
+        setModal({ open: true, success: false, message: t('contact.rateLimited') })
+        return
+      }
+      setModal({ open: true, success: false, message: t('contact.error') })
     } catch {
       setModal({ open: true, success: false, message: t('contact.error') })
     }

@@ -1,9 +1,12 @@
 import { lazy, Suspense } from "react"
+import { useTranslation } from "react-i18next"
 import { Routes, Route } from "react-router"
+import { AlertTriangle } from "lucide-react"
 import { Toaster } from "@/components/ui/sonner"
 import { Spinner } from "@/components/ui/spinner"
 import { PlayerProvider } from "@/lib/player"
 import { PlayerBar } from "@/components/player/player-bar"
+import { hasSupabaseConfig } from "@/lib/supabase"
 import LandingPage from "@/pages/landing"
 
 const AdminLogin = lazy(() => import("@/pages/admin/login"))
@@ -27,6 +30,19 @@ function LazyFallback() {
   )
 }
 
+function ConfigBanner() {
+  const { t } = useTranslation()
+  return (
+    <div className="sticky top-0 z-[100] flex items-start gap-3 border-b border-destructive/50 bg-destructive/10 px-4 py-3 text-destructive">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+      <div className="text-sm">
+        <p className="font-mono font-medium">{t('config.title')}</p>
+        <p className="text-destructive/80">{t('config.body')}</p>
+      </div>
+    </div>
+  )
+}
+
 function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
@@ -42,6 +58,7 @@ function NotFound() {
 export default function App() {
   return (
     <PlayerProvider>
+      {!hasSupabaseConfig && <ConfigBanner />}
       <div className="pb-20">
         <Suspense fallback={<LazyFallback />}>
           <Routes>

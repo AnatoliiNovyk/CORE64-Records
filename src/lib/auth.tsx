@@ -20,14 +20,22 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 })
 
-async function checkIsAdmin(userId: string | undefined): Promise<boolean> {
-  if (!userId) return false
-  const { data, error } = await supabase.rpc('is_admin')
-  if (error) {
-    console.error('is_admin check failed:', error.message)
+async function checkIsAdmin(user: User | null | undefined): Promise<boolean> {
+  if (!user) return false
+
+  // The database is the single source of truth: is_admin() backs every RLS
+  // policy, so anything other than an explicit `true` must deny access.
+  try {
+    const { data, error } = await supabase.rpc('is_admin')
+    if (error) {
+      console.error('is_admin check failed:', error.message)
+      return false
+    }
+    return data === true
+  } catch (error) {
+    console.error('is_admin check crashed:', error)
     return false
   }
-  return Boolean(data)
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -40,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const admin = await checkIsAdmin(session?.user?.id)
+      const admin = await checkIsAdmin(session?.user)
       if (!mounted) return
       setSession(session)
       setUser(session?.user ?? null)
@@ -50,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       ;(async () => {
-        const admin = await checkIsAdmin(session?.user?.id)
+        const admin = await checkIsAdmin(session?.user)
         if (!mounted) return
         setSession(session)
         setUser(session?.user ?? null)
