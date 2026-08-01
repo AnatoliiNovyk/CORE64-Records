@@ -20,7 +20,7 @@ interface TrackListFieldProps {
   onAppend: (value: TrackFormValue) => void
   onRemove: (index: number) => void
   onSwap: (indexA: number, indexB: number) => void
-  errors?: Record<number, { title?: string; audio_url?: string }>
+  errors?: Record<number, { title?: { message?: string }; audio_url?: { message?: string } }>
   minTracks: number
   maxTracks: number | null
 }
@@ -64,7 +64,7 @@ export function TrackListField({
             key={fieldId}
             className={cn(
               'rounded-md border bg-secondary/30 p-2.5',
-              err?.title || err?.audio_url ? 'border-destructive/50' : 'border-border',
+              err?.title?.message || err?.audio_url?.message ? 'border-destructive/50' : 'border-border',
             )}
           >
             <div className="flex items-center gap-2">
@@ -152,10 +152,10 @@ export function TrackListField({
                   {t('admin.releases.audioExists')}
                 </span>
               )}
-              {err?.audio_url && <span className="text-xs text-destructive">{err.audio_url}</span>}
+              {err?.audio_url?.message && <span className="text-xs text-destructive">{err.audio_url.message}</span>}
             </div>
 
-            {err?.title && <p className="mt-1 text-xs text-destructive">{err.title}</p>}
+            {err?.title?.message && <p className="mt-1 text-xs text-destructive">{err.title.message}</p>}
           </div>
         )
       })}

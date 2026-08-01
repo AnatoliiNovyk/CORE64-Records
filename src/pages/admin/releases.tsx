@@ -503,7 +503,7 @@ export default function AdminReleases() {
                   onAppend={handleTrackAppend}
                   onRemove={handleTrackRemove}
                   onSwap={handleTrackSwap}
-                  errors={trackErrors as Record<number, { title?: string; audio_url?: string }> | undefined}
+                  errors={trackErrors as Record<number, { title?: { message?: string }; audio_url?: { message?: string } }> | undefined}
                   minTracks={minTracks}
                   maxTracks={maxTracks}
                 />
