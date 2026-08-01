@@ -16,6 +16,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import type { Event } from '@/types/database'
+import { localToUtcIso, utcToLocalInput } from '@/lib/utils'
 
 export default function AdminEvents() {
   const { t } = useTranslation()
@@ -37,7 +38,7 @@ export default function AdminEvents() {
     setDialogOpen(true)
   }
   const openEdit = (e: Event) => {
-    setEditing({ ...e })
+    setEditing({ ...e, date: utcToLocalInput(e.date) })
     setLineupInput(e.lineup?.join(', ') || '')
     setImageFile(null)
     setFormLang('en')
@@ -53,8 +54,9 @@ export default function AdminEvents() {
       imageUrl = url
     }
     const lineup = lineupInput.split(',').map(s => s.trim()).filter(Boolean)
+    const dateIso = localToUtcIso(editing.date as string)
     try {
-      await upsert.mutateAsync({ ...editing, image_url: imageUrl, lineup })
+      await upsert.mutateAsync({ ...editing, date: dateIso, image_url: imageUrl, lineup })
       toast.success(t('toast.saved'))
       setDialogOpen(false)
     } catch {
@@ -125,7 +127,7 @@ export default function AdminEvents() {
               ) : (
                 <Input placeholder={t('admin.events.fields.title') + ' (UK)'} value={editing.translations?.uk?.title || ''} onChange={e => setEditing({ ...editing, translations: { ...(editing.translations || {}), uk: { ...(editing.translations?.uk || {}), title: e.target.value } } })} />
               )}
-              <Input type="datetime-local" value={editing.date ? editing.date.slice(0, 16) : ''} onChange={e => setEditing({ ...editing, date: e.target.value })} />
+              <Input type="datetime-local" value={editing.date as string} onChange={e => setEditing({ ...editing, date: e.target.value })} />
               <Input placeholder={t('admin.events.fields.venue')} value={editing.venue || ''} onChange={e => setEditing({ ...editing, venue: e.target.value })} />
               <Input placeholder={t('admin.events.fields.city')} value={editing.city || ''} onChange={e => setEditing({ ...editing, city: e.target.value })} />
               {formLang === 'en' ? (
