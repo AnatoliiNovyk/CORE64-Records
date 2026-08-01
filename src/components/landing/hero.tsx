@@ -10,7 +10,7 @@ const HeroSection = memo(function HeroSection() {
 
   return (
     <section id="home" className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      <img src="/hero-bg.webp" alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,255,128,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(0,255,128,0.08),transparent_30%)]" />
       <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,128,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,128,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />

@@ -60,10 +60,10 @@ export function TrackListField({
       {fields.map((tr, i) => {
         const err = errors?.[i]
         const hasAudio = Boolean(tr.audio_url || audioFiles.get(i))
-        const fieldId = tr.id
+        const audioInputId = `audio-track-${i}`
         return (
           <div
-            key={fieldId}
+            key={tr.id || `track-row-${i}`}
             className={cn(
               'rounded-md border bg-secondary/30 p-2.5',
               err?.title?.message || err?.audio_url?.message ? 'border-destructive/50' : 'border-border',
@@ -124,7 +124,7 @@ export function TrackListField({
 
             <div className="mt-2 flex items-center gap-2">
               <input
-                id={`audio-${fieldId}`}
+                id={audioInputId}
                 type="file"
                 accept="audio/*"
                 onChange={(e) => {
@@ -139,7 +139,7 @@ export function TrackListField({
                 className="hidden"
               />
               <label
-                htmlFor={`audio-${fieldId}`}
+                htmlFor={audioInputId}
                 className={cn(
                   'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-3 font-mono text-xs transition-colors',
                   hasAudio
