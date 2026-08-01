@@ -10,7 +10,6 @@ export interface TrackFormValue {
   title: string
   duration: number | null
   audio_url: string | null
-  audio_file?: File | null
   track_number: number
 }
 
@@ -20,6 +19,8 @@ interface TrackListFieldProps {
   onAppend: (value: TrackFormValue) => void
   onRemove: (index: number) => void
   onSwap: (indexA: number, indexB: number) => void
+  onAudioSelect: (index: number, file: File | null) => void
+  audioFiles: Map<number, File>
   errors?: Record<number, { title?: { message?: string }; audio_url?: { message?: string } }>
   minTracks: number
   maxTracks: number | null
@@ -31,6 +32,8 @@ export function TrackListField({
   onAppend,
   onRemove,
   onSwap,
+  onAudioSelect,
+  audioFiles,
   errors,
   minTracks,
   maxTracks,
@@ -42,7 +45,6 @@ export function TrackListField({
       title: '',
       duration: null,
       audio_url: null,
-      audio_file: null,
       track_number: fields.length + 1,
     })
   }
@@ -57,7 +59,7 @@ export function TrackListField({
     <div className="space-y-2">
       {fields.map((tr, i) => {
         const err = errors?.[i]
-        const hasAudio = Boolean(tr.audio_url || tr.audio_file)
+        const hasAudio = Boolean(tr.audio_url || audioFiles.get(i))
         const fieldId = tr.id
         return (
           <div
@@ -128,9 +130,9 @@ export function TrackListField({
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null
                   const nameFromFile = file ? file.name.replace(/\.[^.]+$/, '') : undefined
+                  onAudioSelect(i, file)
                   onUpdate(i, {
                     ...tr,
-                    audio_file: file,
                     title: tr.title || nameFromFile || tr.title,
                   })
                 }}
@@ -147,15 +149,15 @@ export function TrackListField({
               >
                 <Music className="h-3 w-3" />
                 {hasAudio
-                  ? (tr.audio_file?.name ?? t('admin.releases.audioUploaded'))
+                  ? (audioFiles.get(i)?.name ?? t('admin.releases.audioUploaded'))
                   : t('admin.releases.uploadAudio')}
               </label>
-              {tr.audio_file && (
+              {audioFiles.get(i) && (
                 <span className="truncate font-mono text-[10px] text-muted-foreground">
-                  {tr.audio_file.name}
+                  {audioFiles.get(i)!.name}
                 </span>
               )}
-              {tr.audio_url && !tr.audio_file && (
+              {tr.audio_url && !audioFiles.get(i) && (
                 <span className="truncate font-mono text-[10px] text-primary/70">
                   {t('admin.releases.audioExists')}
                 </span>
@@ -208,7 +210,6 @@ export function tracksToFormValues(tracks: Track[] | undefined): TrackFormValue[
       title: t.title,
       duration: t.duration,
       audio_url: t.audio_url,
-      audio_file: null,
       track_number: t.track_number,
     }))
 }

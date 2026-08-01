@@ -32,7 +32,7 @@ const trackSchema = z.object({
   title: z.string().min(1),
   duration: z.number().nullable(),
   audio_url: z.string().nullable(),
-  audio_file: z.any().optional(),
+
   track_number: z.number(),
 })
 
@@ -58,10 +58,7 @@ function makeSchema(releaseType: ReleaseType) {
       .array(trackSchema)
       .min(min, `At least ${min} track(s) required`)
       .refine((arr) => max === null || arr.length <= max, `At most ${max} tracks allowed`)
-      .refine(
-        (arr) => arr.every((t) => t.audio_url || t.audio_file),
-        'All tracks need an audio file',
-      ),
+
   })
 }
 
@@ -74,11 +71,12 @@ export default function AdminReleases() {
   const deleteMut = useDeleteMutation('releases', 'admin_releases')
   const saveTracks = useSaveTracks()
   const { upload: uploadImage } = useFileUpload('releases')
-  const { upload: uploadAudio } = useFileUpload('tracks', 10 * 1024 * 1024)
+  const { upload: uploadAudio } = useFileUpload('tracks', 100 * 1024 * 1024)
   const player = usePlayer()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [audioFiles, setAudioFiles] = useState<Map<number, File>>(new Map())
   const [formLang, setFormLang] = useState<'en' | 'uk'>('en')
   const [editingId, setEditingId] = useState<string | undefined>(undefined)
 
@@ -88,7 +86,7 @@ export default function AdminReleases() {
       title: '', catalog_number: '', artist_name: '', genre: 'dnb', release_type: 'single',
       release_date: null, cover_art_url: '', description: '', buy_link: '',
       stream_links: {}, translations: {}, sort_order: 0, is_visible: true,
-      tracks: [{ title: '', duration: null, audio_url: null, audio_file: null, track_number: 1 }],
+      tracks: [{ title: '', duration: null, audio_url: null, track_number: 1 }],
     },
     mode: 'onChange',
   })
@@ -98,6 +96,14 @@ export default function AdminReleases() {
 
   const handleTrackUpdate = (index: number, value: TrackFormValue) => {
     update(index, value as never)
+  }
+  const handleAudioSelect = (index: number, file: File | null) => {
+    setAudioFiles(prev => {
+      const next = new Map(prev)
+      if (file) next.set(index, file)
+      else next.delete(index)
+      return next
+    })
   }
   const handleTrackAppend = (value: TrackFormValue) => {
     append(value as never)
@@ -112,12 +118,13 @@ export default function AdminReleases() {
   const openNew = () => {
     setEditingId(undefined)
     setCoverFile(null)
+    setAudioFiles(new Map())
     setFormLang('en')
     form.reset({
       title: '', catalog_number: '', artist_name: '', genre: 'dnb', release_type: 'single',
       release_date: null, cover_art_url: '', description: '', buy_link: '',
       stream_links: {}, translations: {}, sort_order: 0, is_visible: true,
-      tracks: [{ title: '', duration: null, audio_url: null, audio_file: null, track_number: 1 }],
+      tracks: [{ title: '', duration: null, audio_url: null, track_number: 1 }],
     })
     setDialogOpen(true)
   }
@@ -125,6 +132,7 @@ export default function AdminReleases() {
   const openEdit = (r: Release) => {
     setEditingId(r.id)
     setCoverFile(null)
+    setAudioFiles(new Map())
     setFormLang('en')
     const trackVals = tracksToFormValues(r.tracks)
     form.reset({
@@ -142,7 +150,7 @@ export default function AdminReleases() {
       translations: r.translations || {},
       sort_order: r.sort_order,
       is_visible: r.is_visible,
-      tracks: trackVals.length > 0 ? trackVals : [{ title: '', duration: null, audio_url: null, audio_file: null, track_number: 1 }],
+      tracks: trackVals.length > 0 ? trackVals : [{ title: '', duration: null, audio_url: null, track_number: 1 }],
     })
     setDialogOpen(true)
   }
@@ -160,12 +168,16 @@ export default function AdminReleases() {
       track_number: i + 1,
     }))
 
-    for (const tr of tracks) {
-      if (tr.audio_file) {
-        const url = await uploadAudio(tr.audio_file)
+    for (let i = 0; i < tracks.length; i++) {
+      if (!tracks[i].audio_url && !audioFiles.get(i)) {
+        toast.error(`Track ${i + 1}: audio file required`)
+        return
+      }
+      const file = audioFiles.get(i)
+      if (file) {
+        const url = await uploadAudio(file)
         if (!url) { toast.error(t('toast.uploadFailed')); return }
-        tr.audio_url = url
-        tr.audio_file = null
+        tracks[i].audio_url = url
       }
     }
 
@@ -352,7 +364,7 @@ export default function AdminReleases() {
                       if (current.length < newMin) {
                         const toAdd = newMin - current.length
                         for (let i = 0; i < toAdd; i++) {
-                          append({ title: '', duration: null, audio_url: null, audio_file: null, track_number: current.length + i + 1 })
+                          append({ title: '', duration: null, audio_url: null, track_number: current.length + i + 1 })
                         }
                       } else if (newType === 'single' && current.length > 1) {
                         for (let i = current.length - 1; i > 0; i--) remove(i)
@@ -503,6 +515,8 @@ export default function AdminReleases() {
                   onAppend={handleTrackAppend}
                   onRemove={handleTrackRemove}
                   onSwap={handleTrackSwap}
+                  onAudioSelect={handleAudioSelect}
+                  audioFiles={audioFiles}
                   errors={trackErrors as Record<number, { title?: { message?: string }; audio_url?: { message?: string } }> | undefined}
                   minTracks={minTracks}
                   maxTracks={maxTracks}
