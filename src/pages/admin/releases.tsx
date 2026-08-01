@@ -32,7 +32,7 @@ const trackSchema = z.object({
   title: z.string().min(1),
   duration: z.number().nullable(),
   audio_url: z.string().nullable(),
-  audio_file: z.instanceof(File).nullable().optional(),
+  audio_file: z.any().optional(),
   track_number: z.number(),
 })
 

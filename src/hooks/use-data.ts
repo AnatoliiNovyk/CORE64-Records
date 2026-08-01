@@ -341,8 +341,9 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (item: T) => {
-      const { error } = await supabase.from(table).upsert(item)
+      const { data, error } = await supabase.from(table).upsert(item).select().maybeSingle()
       if (error) throw error
+      return data as T | null
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKey] })
