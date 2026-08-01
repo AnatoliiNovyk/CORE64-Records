@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GripVertical, Trash2, Plus, Music, ArrowUp, ArrowDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,47 +15,53 @@ export interface TrackFormValue {
 }
 
 interface TrackListFieldProps {
-  value: TrackFormValue[]
-  onChange: (tracks: TrackFormValue[]) => void
+  fields: Array<TrackFormValue & { id: string }>
+  onUpdate: (index: number, value: TrackFormValue) => void
+  onAppend: (value: TrackFormValue) => void
+  onRemove: (index: number) => void
+  onSwap: (indexA: number, indexB: number) => void
   errors?: Record<number, { title?: string; audio_url?: string }>
   minTracks: number
   maxTracks: number | null
 }
 
-export function TrackListField({ value, onChange, errors, minTracks, maxTracks }: TrackListFieldProps) {
+export function TrackListField({
+  fields,
+  onUpdate,
+  onAppend,
+  onRemove,
+  onSwap,
+  errors,
+  minTracks,
+  maxTracks,
+}: TrackListFieldProps) {
   const { t } = useTranslation()
 
-  const update = (index: number, patch: Partial<TrackFormValue>) => {
-    const next = value.map((tr, i) => (i === index ? { ...tr, ...patch } : tr))
-    onChange(next)
-  }
-
   const add = () => {
-    onChange([
-      ...value,
-      { title: '', duration: null, audio_url: null, audio_file: null, track_number: value.length + 1 },
-    ])
-  }
-
-  const remove = (index: number) => {
-    onChange(value.filter((_, i) => i !== index))
+    onAppend({
+      title: '',
+      duration: null,
+      audio_url: null,
+      audio_file: null,
+      track_number: fields.length + 1,
+    })
   }
 
   const move = (index: number, dir: -1 | 1) => {
     const target = index + dir
-    if (target < 0 || target >= value.length) return
-    const next = [...value]
-    ;[next[index], next[target]] = [next[target], next[index]]
-    onChange(next)
+    if (target < 0 || target >= fields.length) return
+    onSwap(index, target)
   }
 
   return (
     <div className="space-y-2">
-      {value.map((tr, i) => {
+      {fields.map((tr, i) => {
         const err = errors?.[i]
+        const hasAudio = Boolean(tr.audio_url || tr.audio_file)
+        const fieldId = tr.id
         return (
           <div
-            key={tr.id ?? `new-${i}`}
+            key={fieldId}
             className={cn(
               'rounded-md border bg-secondary/30 p-2.5',
               err?.title || err?.audio_url ? 'border-destructive/50' : 'border-border',
@@ -70,17 +75,18 @@ export function TrackListField({ value, onChange, errors, minTracks, maxTracks }
               <Input
                 placeholder={t('admin.releases.fields.trackTitle')}
                 value={tr.title}
-                onChange={(e) => update(i, { title: e.target.value })}
+                onChange={(e) => onUpdate(i, { ...tr, title: e.target.value })}
                 className="flex-1"
               />
               <Input
                 type="text"
                 placeholder="0:00"
                 value={tr.duration ? formatDur(tr.duration) : ''}
-                onChange={(e) => update(i, { duration: parseDur(e.target.value) })}
+                onChange={(e) => onUpdate(i, { ...tr, duration: parseDur(e.target.value) })}
                 className="w-16 text-center font-mono text-xs"
               />
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7 shrink-0"
@@ -91,31 +97,64 @@ export function TrackListField({ value, onChange, errors, minTracks, maxTracks }
                 <ArrowUp className="h-3.5 w-3.5" />
               </Button>
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7 shrink-0"
                 onClick={() => move(i, 1)}
-                disabled={i === value.length - 1}
+                disabled={i === fields.length - 1}
                 aria-label={t('admin.releases.moveDown')}
               >
                 <ArrowDown className="h-3.5 w-3.5" />
               </Button>
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7 shrink-0"
-                onClick={() => remove(i)}
-                disabled={value.length <= minTracks}
+                onClick={() => onRemove(i)}
+                disabled={fields.length <= minTracks}
                 aria-label={t('admin.common.delete')}
               >
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
               </Button>
             </div>
-            <AudioInput
-              track={tr}
-              onChange={(file) => update(i, { audio_file: file })}
-              error={err?.audio_url}
-            />
+
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                id={`audio-${fieldId}`}
+                type="file"
+                accept="audio/*"
+                onChange={(e) => onUpdate(i, { ...tr, audio_file: e.target.files?.[0] ?? null })}
+                className="hidden"
+              />
+              <label
+                htmlFor={`audio-${fieldId}`}
+                className={cn(
+                  'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-3 font-mono text-xs transition-colors',
+                  hasAudio
+                    ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    : 'border border-input bg-background hover:bg-accent',
+                )}
+              >
+                <Music className="h-3 w-3" />
+                {hasAudio
+                  ? (tr.audio_file?.name ?? t('admin.releases.audioUploaded'))
+                  : t('admin.releases.uploadAudio')}
+              </label>
+              {tr.audio_file && (
+                <span className="truncate font-mono text-[10px] text-muted-foreground">
+                  {tr.audio_file.name}
+                </span>
+              )}
+              {tr.audio_url && !tr.audio_file && (
+                <span className="truncate font-mono text-[10px] text-primary/70">
+                  {t('admin.releases.audioExists')}
+                </span>
+              )}
+              {err?.audio_url && <span className="text-xs text-destructive">{err.audio_url}</span>}
+            </div>
+
             {err?.title && <p className="mt-1 text-xs text-destructive">{err.title}</p>}
           </div>
         )
@@ -125,7 +164,7 @@ export function TrackListField({ value, onChange, errors, minTracks, maxTracks }
         variant="outline"
         size="sm"
         onClick={add}
-        disabled={maxTracks !== null && value.length >= maxTracks}
+        disabled={maxTracks !== null && fields.length >= maxTracks}
         className="w-full font-mono"
       >
         <Plus className="mr-1.5 h-3.5 w-3.5" />
@@ -136,55 +175,6 @@ export function TrackListField({ value, onChange, errors, minTracks, maxTracks }
           {minTracks}-{maxTracks ?? '∞'} {t('admin.releases.tracksRange')}
         </p>
       )}
-    </div>
-  )
-}
-
-function AudioInput({
-  track,
-  onChange,
-  error,
-}: {
-  track: TrackFormValue
-  onChange: (file: File | null) => void
-  error?: string
-}) {
-  const { t } = useTranslation()
-  const ref = useRef<HTMLInputElement>(null)
-  const hasAudio = Boolean(track.audio_url || track.audio_file)
-
-  return (
-    <div className="mt-2 flex items-center gap-2">
-      <input
-        ref={ref}
-        type="file"
-        accept="audio/*"
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        className="hidden"
-      />
-      <Button
-        type="button"
-        variant={hasAudio ? 'secondary' : 'outline'}
-        size="sm"
-        className="h-7 font-mono text-xs"
-        onClick={() => ref.current?.click()}
-      >
-        <Music className="mr-1.5 h-3 w-3" />
-        {hasAudio
-          ? (track.audio_file?.name ?? t('admin.releases.audioUploaded'))
-          : t('admin.releases.uploadAudio')}
-      </Button>
-      {track.audio_file && (
-        <span className="truncate font-mono text-[10px] text-muted-foreground">
-          {track.audio_file.name}
-        </span>
-      )}
-      {track.audio_url && !track.audio_file && (
-        <span className="truncate font-mono text-[10px] text-primary/70">
-          {t('admin.releases.audioExists')}
-        </span>
-      )}
-      {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   )
 }

@@ -93,8 +93,21 @@ export default function AdminReleases() {
     mode: 'onChange',
   })
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'tracks' })
+  const { fields, append, remove, update, swap } = useFieldArray({ control: form.control, name: 'tracks' })
   const releaseType = form.watch('release_type')
+
+  const handleTrackUpdate = (index: number, value: TrackFormValue) => {
+    update(index, value as never)
+  }
+  const handleTrackAppend = (value: TrackFormValue) => {
+    append(value as never)
+  }
+  const handleTrackRemove = (index: number) => {
+    remove(index)
+  }
+  const handleTrackSwap = (a: number, b: number) => {
+    swap(a, b)
+  }
 
   const openNew = () => {
     setEditingId(undefined)
@@ -485,10 +498,11 @@ export default function AdminReleases() {
                   {t('admin.releases.tracksSection')}
                 </p>
                 <TrackListField
-                  value={fields as unknown as TrackFormValue[]}
-                  onChange={(vals) => {
-                    vals.forEach((v, i) => form.setValue(`tracks.${i}`, v as never))
-                  }}
+                  fields={fields as unknown as Array<TrackFormValue & { id: string }>}
+                  onUpdate={handleTrackUpdate}
+                  onAppend={handleTrackAppend}
+                  onRemove={handleTrackRemove}
+                  onSwap={handleTrackSwap}
                   errors={trackErrors as Record<number, { title?: string; audio_url?: string }> | undefined}
                   minTracks={minTracks}
                   maxTracks={maxTracks}
