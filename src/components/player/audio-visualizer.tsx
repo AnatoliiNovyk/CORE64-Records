@@ -72,7 +72,7 @@ export function AudioVisualizer({
       const gap = barW * 0.25
       const drawW = barW - gap
 
-      let values: number[] = []
+      const values: number[] = []
 
       if (isPlaying && analyserRef.current && freqData) {
         const data = freqData as Uint8Array<ArrayBuffer>

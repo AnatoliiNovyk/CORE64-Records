@@ -53,7 +53,7 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
   return { upload, remove, uploading, error }
 }
 
-function extractPath(url: string): string | null {
+export function extractPath(url: string): string | null {
   const match = url.match(/\/storage\/v1\/object\/public\/media\/(.+)$/)
   return match ? match[1] : null
 }

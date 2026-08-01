@@ -8,8 +8,9 @@ import {
   type ReactNode,
 } from 'react'
 import type { Release, Track } from '@/types/database'
+import { pickNextIndex, pickPrevIndex, type RepeatMode } from './player-queue'
 
-export type RepeatMode = 'off' | 'all' | 'one'
+export type { RepeatMode }
 
 interface PlayerState {
   release: Release | null
@@ -52,27 +53,6 @@ const initialState: PlayerState = {
   shuffle: false,
   repeat: 'off',
   expanded: false,
-}
-
-function pickNextIndex(state: PlayerState): number {
-  const { tracks, currentIndex, shuffle, repeat } = state
-  if (tracks.length === 0) return 0
-  if (shuffle && tracks.length > 1) {
-    let next = currentIndex
-    while (next === currentIndex) {
-      next = Math.floor(Math.random() * tracks.length)
-    }
-    return next
-  }
-  if (currentIndex < tracks.length - 1) return currentIndex + 1
-  return repeat === 'all' ? 0 : -1
-}
-
-function pickPrevIndex(state: PlayerState): number {
-  const { tracks, currentIndex, repeat } = state
-  if (tracks.length === 0) return 0
-  if (currentIndex > 0) return currentIndex - 1
-  return repeat === 'all' ? tracks.length - 1 : 0
 }
 
 function reducer(state: PlayerState, action: Action): PlayerState {
@@ -251,6 +231,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <PlayerContext.Provider value={value}>
       {children}
+      <audio ref={audioRef} preload="auto" crossOrigin="anonymous" className="hidden" />
     </PlayerContext.Provider>
   )
 }
