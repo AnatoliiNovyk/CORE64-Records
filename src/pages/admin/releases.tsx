@@ -92,11 +92,27 @@ export default function AdminReleases() {
     mode: 'onChange',
   })
 
-  const { fields, append, remove, update, swap } = useFieldArray({ control: form.control, name: 'tracks' })
+  // `keyName` must not be 'id' (the default): react-hook-form overwrites that
+  // property in `fields` with its own generated key, which would shadow the
+  // track's real database id and make every save take the update-by-unknown-id
+  // path instead of inserting.
+  const { fields, append, remove, update, swap } = useFieldArray({
+    control: form.control,
+    name: 'tracks',
+    keyName: '_key',
+  })
   const releaseType = form.watch('release_type')
 
+  // TrackListField spreads the whole field object back in, so strip the
+  // `_key` react-hook-form bookkeeping property before it lands in form values.
   const handleTrackUpdate = (index: number, value: TrackFormValue) => {
-    update(index, value as never)
+    update(index, {
+      id: value.id,
+      title: value.title,
+      duration: value.duration,
+      audio_url: value.audio_url,
+      track_number: value.track_number,
+    } as never)
   }
   const handleAudioSelect = (index: number, file: File | null) => {
     setAudioFiles(prev => {
@@ -276,7 +292,7 @@ export default function AdminReleases() {
                 <TableHead className="w-12"></TableHead>
                 <TableHead>{t('admin.releases.fields.title')}</TableHead>
                 <TableHead>{t('admin.releases.fields.artistName')}</TableHead>
-                <TableHead>{t('admin.releases.fields.type')}</TableHead>
+                <TableHead>{t('admin.releases.fields.releaseType')}</TableHead>
                 <TableHead>{t('admin.releases.fields.genre')}</TableHead>
                 <TableHead>{t('admin.releases.fields.tracks')}</TableHead>
                 <TableHead>{t('admin.releases.fields.visible')}</TableHead>

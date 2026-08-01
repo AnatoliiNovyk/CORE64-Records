@@ -220,8 +220,19 @@ export function useSaveTracks() {
           track_number: i + 1,
         }
         if (track.id) {
-          const { error } = await supabase.from('tracks').update(row).eq('id', track.id)
+          // An UPDATE that matches no rows is not an error, so ask for the
+          // affected row back. If the id turns out to be stale, insert instead
+          // of silently saving nothing.
+          const { data: updated, error } = await supabase
+            .from('tracks')
+            .update(row)
+            .eq('id', track.id)
+            .select('id')
           if (error) throw error
+          if (!updated || updated.length === 0) {
+            const { error: insertError } = await supabase.from('tracks').insert(row)
+            if (insertError) throw insertError
+          }
         } else {
           const { error } = await supabase.from('tracks').insert(row)
           if (error) throw error

@@ -14,7 +14,9 @@ export interface TrackFormValue {
 }
 
 interface TrackListFieldProps {
-  fields: Array<TrackFormValue & { id: string }>
+  // Only the track's own fields are needed here; react-hook-form's bookkeeping
+  // key (renamed to `_key` so it cannot shadow the database id) is not used.
+  fields: TrackFormValue[]
   onUpdate: (index: number, value: TrackFormValue) => void
   onAppend: (value: TrackFormValue) => void
   onRemove: (index: number) => void
