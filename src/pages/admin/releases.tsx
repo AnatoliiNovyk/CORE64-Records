@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { useAdminReleases, useUpsertMutation, useDeleteMutation, useSaveTracks } from '@/hooks/use-data'
 import { useFileUpload } from '@/hooks/use-file-upload'
+import { supabase } from '@/lib/supabase'
 import { usePlayer } from '@/lib/player'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -176,7 +177,10 @@ export default function AdminReleases() {
       const file = audioFiles.get(i)
       if (file) {
         const url = await uploadAudio(file)
-        if (!url) { toast.error(t('toast.uploadFailed')); return }
+        if (!url) {
+          toast.error(`Track ${i + 1}: upload failed — check file size or connection`)
+          return
+        }
         tracks[i].audio_url = url
       }
     }
@@ -199,11 +203,21 @@ export default function AdminReleases() {
       }
       if (editingId) payload.id = editingId
 
-      const saved = await upsert.mutateAsync(payload) as unknown as { id?: string } | undefined
-      const releaseId = saved?.id
+      let targetId: string
+      if (editingId) {
+        await upsert.mutateAsync({ ...payload, id: editingId })
+        targetId = editingId
+      } else {
+        const { data: inserted, error: insertError } = await supabase
+          .from('releases')
+          .insert(payload)
+          .select('id')
+          .single()
+        if (insertError || !inserted?.id) throw insertError ?? new Error('Insert returned no id')
+        targetId = inserted.id
+      }
 
-      if (releaseId || editingId) {
-        const targetId = releaseId || editingId!
+      if (targetId) {
         await saveTracks.mutateAsync({
           releaseId: targetId,
           tracks: tracks.map((tr) => ({
