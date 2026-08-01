@@ -125,7 +125,15 @@ export function TrackListField({
                 id={`audio-${fieldId}`}
                 type="file"
                 accept="audio/*"
-                onChange={(e) => onUpdate(i, { ...tr, audio_file: e.target.files?.[0] ?? null })}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  const nameFromFile = file ? file.name.replace(/\.[^.]+$/, '') : undefined
+                  onUpdate(i, {
+                    ...tr,
+                    audio_file: file,
+                    title: tr.title || nameFromFile || tr.title,
+                  })
+                }}
                 className="hidden"
               />
               <label
