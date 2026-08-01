@@ -1,0 +1,4 @@
+# SPA fallback. The app uses BrowserRouter, so /admin, /admin/releases and every
+# other route exists only in JavaScript. Without this rule a direct visit or a
+# page refresh on any route other than / returns a 404 from the server.
+/*    /index.html   200
