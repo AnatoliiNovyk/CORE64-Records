@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react"
 import { Routes, Route } from "react-router"
 import { Toaster } from "@/components/ui/sonner"
 import { Spinner } from "@/components/ui/spinner"
+import { PlayerProvider } from "@/lib/player"
+import { PlayerBar } from "@/components/player/player-bar"
 import LandingPage from "@/pages/landing"
 
 const AdminLogin = lazy(() => import("@/pages/admin/login"))
@@ -39,27 +41,30 @@ function NotFound() {
 
 export default function App() {
   return (
-    <>
-      <Suspense fallback={<LazyFallback />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="content" element={<AdminContent />} />
-            <Route path="releases" element={<AdminReleases />} />
-            <Route path="producers" element={<AdminProducers />} />
-            <Route path="videos" element={<AdminVideos />} />
-            <Route path="photos" element={<AdminPhotos />} />
-            <Route path="events" element={<AdminEvents />} />
-            <Route path="partners" element={<AdminPartners />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="settings" element={<AdminSettings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+    <PlayerProvider>
+      <div className="pb-20">
+        <Suspense fallback={<LazyFallback />}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="content" element={<AdminContent />} />
+              <Route path="releases" element={<AdminReleases />} />
+              <Route path="producers" element={<AdminProducers />} />
+              <Route path="videos" element={<AdminVideos />} />
+              <Route path="photos" element={<AdminPhotos />} />
+              <Route path="events" element={<AdminEvents />} />
+              <Route path="partners" element={<AdminPartners />} />
+              <Route path="messages" element={<AdminMessages />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </div>
+      <PlayerBar />
       <Toaster />
-    </>
+    </PlayerProvider>
   )
 }

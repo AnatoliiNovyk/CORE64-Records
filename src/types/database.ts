@@ -10,12 +10,15 @@ export interface SiteContent {
   updated_at: string
 }
 
+export type ReleaseType = 'single' | 'ep' | 'album'
+
 export interface Release {
   id: string
   title: string
   catalog_number: string | null
   artist_name: string
   genre: 'neurofunk' | 'dnb' | 'breakbeat' | 'techstep'
+  release_type: ReleaseType
   release_date: string | null
   cover_art_url: string | null
   description: string | null
@@ -24,6 +27,17 @@ export interface Release {
   translations: Record<string, Record<string, string>>
   sort_order: number
   is_visible: boolean
+  created_at: string
+  tracks?: Track[]
+}
+
+export interface Track {
+  id: string
+  release_id: string
+  title: string
+  duration: number | null
+  audio_url: string | null
+  track_number: number
   created_at: string
 }
 

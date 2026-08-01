@@ -169,13 +169,16 @@
         "catalogNumber": "Catalog Number",
         "artistName": "Artist Name",
         "genre": "Genre",
+        "releaseType": "Release Type",
         "releaseDate": "Release Date",
         "coverArt": "Cover Art",
         "description": "Description",
         "buyLink": "Buy Link",
         "streamLinks": "Stream Links (JSON)",
         "sortOrder": "Sort Order",
-        "visible": "Visible"
+        "visible": "Visible",
+        "tracks": "Tracks",
+        "trackTitle": "Track title"
       },
       "genres": {
         "neurofunk": "Neurofunk",
@@ -183,6 +186,15 @@
         "breakbeat": "Breakbeat",
         "techstep": "Techstep"
       },
+      "tracksSection": "Track List",
+      "addTrack": "Add Track",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "trackTitle": "Track title",
+      "uploadAudio": "Upload audio",
+      "audioUploaded": "Audio selected",
+      "audioExists": "Audio file",
+      "tracksRange": "tracks",
       "validation": {
         "required": "Title and artist are required"
       }
@@ -370,5 +382,26 @@
   "language": {
     "en": "English",
     "uk": "Ukrainian"
+  },
+  "player": {
+    "nowPlaying": "Now Playing",
+    "play": "Play",
+    "pause": "Pause",
+    "next": "Next",
+    "previous": "Previous",
+    "shuffle": "Shuffle",
+    "repeat": "Repeat",
+    "mute": "Mute",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "share": "Share",
+    "shareCopied": "Link copied to clipboard",
+    "shareFailed": "Failed to copy link",
+    "tracklist": "Tracklist",
+    "types": {
+      "single": "Single",
+      "ep": "EP",
+      "album": "Album"
+    }
   }
 }

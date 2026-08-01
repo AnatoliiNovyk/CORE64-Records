@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
-import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting } from '@/types/database'
+import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting, Track } from '@/types/database'
 
 export function useSiteContent() {
   return useQuery({
@@ -60,11 +60,15 @@ export function useReleases() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('releases')
-        .select('*')
+        .select('*, tracks(*)')
         .eq('is_visible', true)
         .order('sort_order')
       if (error) throw error
-      return data as Release[]
+      const releases = data as Release[]
+      releases.forEach(r => {
+        r.tracks?.sort((a, b) => a.track_number - b.track_number)
+      })
+      return releases
     },
   })
 }
@@ -178,10 +182,60 @@ export function useAdminReleases() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('releases')
-        .select('*')
+        .select('*, tracks(*)')
         .order('sort_order')
       if (error) throw error
-      return data as Release[]
+      const releases = data as Release[]
+      releases.forEach(r => {
+        r.tracks?.sort((a, b) => a.track_number - b.track_number)
+      })
+      return releases
+    },
+  })
+}
+
+export function useSaveTracks() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ releaseId, tracks }: { releaseId: string; tracks: Array<Omit<Track, 'id'> & { id?: string }> }) => {
+      const { data: existing, error: fetchError } = await supabase
+        .from('tracks')
+        .select('id, audio_url')
+        .eq('release_id', releaseId)
+      if (fetchError) throw fetchError
+
+      const keepIds = new Set(tracks.filter(t => t.id).map(t => t.id))
+      const toDelete = (existing || []).filter(t => !keepIds.has(t.id))
+
+      if (toDelete.length > 0) {
+        const { error: delError } = await supabase
+          .from('tracks')
+          .delete()
+          .in('id', toDelete.map(t => t.id))
+        if (delError) throw delError
+      }
+
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i]
+        const row = {
+          release_id: releaseId,
+          title: track.title,
+          duration: track.duration,
+          audio_url: track.audio_url,
+          track_number: i + 1,
+        }
+        if (track.id) {
+          const { error } = await supabase.from('tracks').update(row).eq('id', track.id)
+          if (error) throw error
+        } else {
+          const { error } = await supabase.from('tracks').insert(row)
+          if (error) throw error
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_releases'] })
+      queryClient.invalidateQueries({ queryKey: ['releases'] })
     },
   })
 }

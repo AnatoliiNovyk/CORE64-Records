@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024
+const DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024
 
-export function useFileUpload(folder: string) {
+export function useFileUpload(folder: string, maxFileSize?: number) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function upload(file: File): Promise<string | null> {
-    if (file.size > MAX_FILE_SIZE) {
+    const limit = maxFileSize ?? DEFAULT_MAX_FILE_SIZE
+    if (file.size > limit) {
       setError('fileTooLarge')
       return null
     }

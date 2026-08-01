@@ -169,13 +169,16 @@
         "catalogNumber": "Каталожний номер",
         "artistName": "Ім'я артиста",
         "genre": "Жанр",
+        "releaseType": "Тип релізу",
         "releaseDate": "Дата релізу",
         "coverArt": "Обкладинка",
         "description": "Опис",
         "buyLink": "Посилання для купівлі",
         "streamLinks": "Потокові посилання (JSON)",
         "sortOrder": "Порядок сортування",
-        "visible": "Видимий"
+        "visible": "Видимий",
+        "tracks": "Треки",
+        "trackTitle": "Назва треку"
       },
       "genres": {
         "neurofunk": "Neurofunk",
@@ -183,6 +186,15 @@
         "breakbeat": "Breakbeat",
         "techstep": "Techstep"
       },
+      "tracksSection": "Список треків",
+      "addTrack": "Додати трек",
+      "moveUp": "Вгору",
+      "moveDown": "Вниз",
+      "trackTitle": "Назва треку",
+      "uploadAudio": "Завантажити аудіо",
+      "audioUploaded": "Аудіо вибрано",
+      "audioExists": "Аудіо файл",
+      "tracksRange": "треків",
       "validation": {
         "required": "Назва та артист обов'язкові"
       }
@@ -370,5 +382,26 @@
   "language": {
     "en": "English",
     "uk": "Українська"
+  },
+  "player": {
+    "nowPlaying": "Зараз грає",
+    "play": "Відтворити",
+    "pause": "Пауза",
+    "next": "Наступний",
+    "previous": "Попередній",
+    "shuffle": "Перемішати",
+    "repeat": "Повтор",
+    "mute": "Вимкнути звук",
+    "expand": "Розгорнути",
+    "collapse": "Згорнути",
+    "share": "Поділитися",
+    "shareCopied": "Посилання скопійовано",
+    "shareFailed": "Не вдалося скопіювати",
+    "tracklist": "Список треків",
+    "types": {
+      "single": "Сингл",
+      "ep": "EP",
+      "album": "Альбом"
+    }
   }
 }
