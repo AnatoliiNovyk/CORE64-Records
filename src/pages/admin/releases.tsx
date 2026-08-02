@@ -3,7 +3,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { useAdminReleases, useUpsertMutation, useDeleteMutation, useSaveTracks } from '@/hooks/use-data'
+import { buildTrackSaveRows, useAdminReleases, useUpsertMutation, useDeleteMutation, useSaveTracks } from '@/hooks/use-data'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { supabase } from '@/lib/supabase'
 import { usePlayer } from '@/lib/player'
@@ -185,19 +185,22 @@ export default function AdminReleases() {
       track_number: i + 1,
     }))
 
+    const uploadedAudioUrls = new Map<number, string>()
+
     for (let i = 0; i < tracks.length; i++) {
-      if (!tracks[i].audio_url && !audioFiles.get(i)) {
+      const existingAudioUrl = tracks[i].audio_url
+      const file = audioFiles.get(i)
+      if (!existingAudioUrl && !file) {
         toast.error(`Track ${i + 1}: audio file required`)
         return
       }
-      const file = audioFiles.get(i)
       if (file) {
         const url = await uploadAudio(file)
         if (!url) {
           toast.error(`Track ${i + 1}: upload failed — check file size or connection`)
           return
         }
-        tracks[i].audio_url = url
+        uploadedAudioUrls.set(i, url)
       }
     }
 
@@ -236,15 +239,7 @@ export default function AdminReleases() {
       if (targetId) {
         await saveTracks.mutateAsync({
           releaseId: targetId,
-          tracks: tracks.map((tr) => ({
-            id: tr.id || undefined,
-            release_id: targetId,
-            title: tr.title,
-            duration: tr.duration,
-            audio_url: tr.audio_url,
-            track_number: tr.track_number,
-            created_at: '',
-          })),
+          tracks: buildTrackSaveRows(targetId, tracks, uploadedAudioUrls),
         })
       }
 

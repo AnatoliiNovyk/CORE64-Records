@@ -4,6 +4,32 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting, Track } from '@/types/database'
 
+export interface TrackSaveRow {
+  id?: string
+  release_id: string
+  title: string
+  duration: number | null
+  audio_url: string | null
+  track_number: number
+  created_at: string
+}
+
+export function buildTrackSaveRows(
+  releaseId: string,
+  tracks: Array<{ id?: string; title: string; duration: number | null; audio_url: string | null; track_number: number }>,
+  uploadedAudioUrls: Map<number, string>,
+): TrackSaveRow[] {
+  return tracks.map((track, index) => ({
+    id: track.id,
+    release_id: releaseId,
+    title: track.title,
+    duration: track.duration,
+    audio_url: uploadedAudioUrls.get(index) ?? track.audio_url,
+    track_number: index + 1,
+    created_at: '',
+  }))
+}
+
 export function useSiteContent() {
   return useQuery({
     queryKey: ['site_content'],
