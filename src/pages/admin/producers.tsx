@@ -100,7 +100,12 @@ export default function AdminProducers() {
   }
 
   const handleSave = async () => {
-    if (!editing?.name || !editing?.slug) {
+    let slug = (editing?.slug || '').trim()
+    if (!slug && editing?.name) {
+      slug = editing.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    }
+
+    if (!editing?.name || !slug) {
       toast.error(t('admin.producers.validation.required'))
       return
     }
@@ -120,11 +125,16 @@ export default function AdminProducers() {
       if (value.trim()) music_links[key] = value.trim()
     }
     try {
-      await upsert.mutateAsync({ ...editing, avatar_url: avatarUrl, genres, social_links, music_links })
+      await upsert.mutateAsync({ ...editing, slug, avatar_url: avatarUrl, genres, social_links, music_links })
       toast.success(t('toast.saved'))
       setDialogOpen(false)
     } catch (err) {
-      toast.error((err as Error)?.message || t('toast.saveFailed'))
+      const msg = (err as Error)?.message || ''
+      if (msg.includes('producers_slug_key')) {
+        toast.error(`Продюсер з таким Slug (${slug}) вже існує! Будь ласка, змініть полі Slug на інше унікальне ім'я.`)
+      } else {
+        toast.error(msg || t('toast.saveFailed'))
+      }
     }
   }
 
@@ -198,7 +208,15 @@ export default function AdminProducers() {
           {editing && (
             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
               <LanguageTabs active={formLang} onChange={setFormLang} />
-              <Input placeholder={t('admin.producers.fields.name')} value={editing.name || ''} onChange={e => setEditing({ ...editing, name: e.target.value })} />
+              <Input
+                placeholder={t('admin.producers.fields.name')}
+                value={editing.name || ''}
+                onChange={e => {
+                  const name = e.target.value
+                  const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                  setEditing(prev => prev ? { ...prev, name, slug: prev.id ? (prev.slug || '') : autoSlug } : null)
+                }}
+              />
               <Input placeholder={t('admin.producers.fields.slug')} value={editing.slug || ''} onChange={e => setEditing({ ...editing, slug: e.target.value })} />
               <div>
                 <label className="text-sm text-muted-foreground mb-1 block">{t('admin.producers.fields.avatar')}</label>
