@@ -91,6 +91,7 @@ export default function AdminReleases() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(releaseFormSchema) as never,
+    shouldUnregister: false,
     defaultValues: {
       title: '', catalog_number: '', artist_name: '', genre: 'dnb', release_type: 'single',
       release_date: null, cover_art_url: '', description: '', buy_link: '',
@@ -162,19 +163,19 @@ export default function AdminReleases() {
     const trackVals = tracksToFormValues(r.tracks)
     form.reset({
       id: r.id,
-      title: r.title,
+      title: r.title || '',
       catalog_number: r.catalog_number || '',
-      artist_name: r.artist_name,
-      genre: r.genre,
-      release_type: r.release_type,
-      release_date: r.release_date,
-      cover_art_url: r.cover_art_url,
+      artist_name: r.artist_name || '',
+      genre: r.genre || 'dnb',
+      release_type: r.release_type || 'single',
+      release_date: r.release_date || null,
+      cover_art_url: r.cover_art_url || '',
       description: r.description || '',
       buy_link: r.buy_link || '',
       stream_links: r.stream_links || {},
       translations: r.translations || {},
-      sort_order: r.sort_order,
-      is_visible: r.is_visible,
+      sort_order: r.sort_order ?? 0,
+      is_visible: r.is_visible ?? true,
       tracks: trackVals.length > 0 ? trackVals : [{ title: 'Untitled Track', duration: null, audio_url: null, track_number: 1 }],
     })
     setDialogOpen(true)
