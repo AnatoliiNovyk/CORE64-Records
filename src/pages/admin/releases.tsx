@@ -30,40 +30,48 @@ const RELEASE_TYPES: ReleaseType[] = ['single', 'ep', 'album']
 
 const trackSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1),
+  title: z.string().min(1, 'Track title required'),
   duration: z.number().nullable(),
   audio_url: z.string().nullable(),
-
   track_number: z.number(),
 })
 
-function makeSchema(releaseType: ReleaseType) {
-  const min = releaseType === 'single' ? 1 : releaseType === 'ep' ? 2 : 7
-  const max = releaseType === 'single' ? 1 : releaseType === 'ep' ? 6 : null
-  return z.object({
-    id: z.string().optional(),
-    title: z.string().min(1),
-    catalog_number: z.string(),
-    artist_name: z.string().min(1),
-    genre: z.enum(GENRES),
-    release_type: z.enum(RELEASE_TYPES),
-    release_date: z.string().nullable(),
-    cover_art_url: z.string().nullable(),
-    description: z.string(),
-    buy_link: z.string(),
-    stream_links: z.record(z.string(), z.string()),
-    translations: z.record(z.string(), z.record(z.string(), z.string())),
-    sort_order: z.number(),
-    is_visible: z.boolean(),
-    tracks: z
-      .array(trackSchema)
-      .min(min, `At least ${min} track(s) required`)
-      .refine((arr) => max === null || arr.length <= max, `At most ${max} tracks allowed`)
+const releaseFormSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
+  catalog_number: z.string().optional().default(''),
+  artist_name: z.string().min(1, 'Artist name is required'),
+  genre: z.enum(GENRES),
+  release_type: z.enum(RELEASE_TYPES),
+  release_date: z.string().nullable().optional(),
+  cover_art_url: z.string().nullable().optional(),
+  description: z.string().optional().default(''),
+  buy_link: z.string().optional().default(''),
+  stream_links: z.record(z.string(), z.string()).optional().default({}),
+  translations: z.record(z.string(), z.record(z.string(), z.string())).optional().default({}),
+  sort_order: z.number().optional().default(0),
+  is_visible: z.boolean().optional().default(true),
+  tracks: z.array(trackSchema),
+}).superRefine((data, ctx) => {
+  const min = data.release_type === 'single' ? 1 : data.release_type === 'ep' ? 2 : 7
+  const max = data.release_type === 'single' ? 1 : data.release_type === 'ep' ? 6 : null
+  if (data.tracks.length < min) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `At least ${min} track(s) required for ${data.release_type.toUpperCase()}`,
+      path: ['tracks'],
+    })
+  }
+  if (max !== null && data.tracks.length > max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `At most ${max} track(s) allowed for ${data.release_type.toUpperCase()}`,
+      path: ['tracks'],
+    })
+  }
+})
 
-  })
-}
-
-type FormValues = z.infer<ReturnType<typeof makeSchema>>
+type FormValues = z.infer<typeof releaseFormSchema>
 
 export default function AdminReleases() {
   const { t } = useTranslation()
@@ -82,7 +90,7 @@ export default function AdminReleases() {
   const [editingId, setEditingId] = useState<string | undefined>(undefined)
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(makeSchema('single')) as never,
+    resolver: zodResolver(releaseFormSchema) as never,
     defaultValues: {
       title: '', catalog_number: '', artist_name: '', genre: 'dnb', release_type: 'single',
       release_date: null, cover_art_url: '', description: '', buy_link: '',
@@ -167,88 +175,98 @@ export default function AdminReleases() {
       translations: r.translations || {},
       sort_order: r.sort_order,
       is_visible: r.is_visible,
-      tracks: trackVals.length > 0 ? trackVals : [{ title: '', duration: null, audio_url: null, track_number: 1 }],
+      tracks: trackVals.length > 0 ? trackVals : [{ title: 'Untitled Track', duration: null, audio_url: null, track_number: 1 }],
     })
     setDialogOpen(true)
   }
 
-  const handleSave = form.handleSubmit(async (values) => {
-    let coverUrl = values.cover_art_url || ''
-    if (coverFile) {
-      const url = await uploadImage(coverFile)
-      if (!url) { toast.error(t('toast.uploadFailed')); return }
-      coverUrl = url
-    }
-
-    const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
-      ...tr,
-      track_number: i + 1,
-    }))
-
-    const uploadedAudioUrls = new Map<number, string>()
-
-    for (let i = 0; i < tracks.length; i++) {
-      const existingAudioUrl = tracks[i].audio_url
-      const file = audioFiles.get(i)
-      if (!existingAudioUrl && !file) {
-        toast.error(`Track ${i + 1}: audio file required`)
-        return
+  const handleSave = form.handleSubmit(
+    async (values) => {
+      let coverUrl = values.cover_art_url || ''
+      if (coverFile) {
+        const url = await uploadImage(coverFile)
+        if (!url) { toast.error(t('toast.uploadFailed')); return }
+        coverUrl = url
       }
-      if (file) {
-        const url = await uploadAudio(file)
-        if (!url) {
-          toast.error(`Track ${i + 1}: upload failed — check file size or connection`)
+
+      const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
+        ...tr,
+        track_number: i + 1,
+      }))
+
+      const uploadedAudioUrls = new Map<number, string>()
+
+      for (let i = 0; i < tracks.length; i++) {
+        const existingAudioUrl = tracks[i].audio_url
+        const file = audioFiles.get(i)
+        if (!existingAudioUrl && !file) {
+          toast.error(`Track ${i + 1}: audio file required`)
           return
         }
-        uploadedAudioUrls.set(i, url)
+        if (file) {
+          const url = await uploadAudio(file)
+          if (!url) {
+            toast.error(`Track ${i + 1}: upload failed — check file size or connection`)
+            return
+          }
+          uploadedAudioUrls.set(i, url)
+        }
+      }
+
+      try {
+        const payload: Record<string, unknown> = {
+          title: values.title,
+          catalog_number: values.catalog_number,
+          artist_name: values.artist_name,
+          genre: values.genre,
+          release_type: values.release_type,
+          release_date: values.release_date,
+          cover_art_url: coverUrl,
+          description: values.description,
+          buy_link: values.buy_link,
+          stream_links: values.stream_links,
+          translations: values.translations,
+          sort_order: values.sort_order,
+          is_visible: values.is_visible,
+        }
+        if (editingId) payload.id = editingId
+
+        let targetId: string
+        if (editingId) {
+          await upsert.mutateAsync({ ...payload, id: editingId })
+          targetId = editingId
+        } else {
+          const { data: inserted, error: insertError } = await supabase
+            .from('releases')
+            .insert(payload)
+            .select('id')
+            .single()
+          if (insertError || !inserted?.id) throw insertError ?? new Error('Insert returned no id')
+          targetId = inserted.id
+        }
+
+        if (targetId) {
+          await saveTracks.mutateAsync({
+            releaseId: targetId,
+            tracks: buildTrackSaveRows(targetId, tracks, uploadedAudioUrls),
+          })
+        }
+
+        toast.success(t('toast.saved'))
+        setDialogOpen(false)
+      } catch (err) {
+        toast.error((err as Error)?.message || t('toast.saveFailed'))
+      }
+    },
+    (invalidErrors) => {
+      console.error('Release form validation failed:', invalidErrors)
+      const firstField = Object.keys(invalidErrors)[0]
+      if (firstField) {
+        const fieldError = invalidErrors[firstField as keyof typeof invalidErrors] as { message?: string }
+        toast.error(`Validation error in ${firstField}: ${fieldError?.message || 'Check required fields'}`)
       }
     }
-
-    try {
-      const payload: Record<string, unknown> = {
-        title: values.title,
-        catalog_number: values.catalog_number,
-        artist_name: values.artist_name,
-        genre: values.genre,
-        release_type: values.release_type,
-        release_date: values.release_date,
-        cover_art_url: coverUrl,
-        description: values.description,
-        buy_link: values.buy_link,
-        stream_links: values.stream_links,
-        translations: values.translations,
-        sort_order: values.sort_order,
-        is_visible: values.is_visible,
-      }
-      if (editingId) payload.id = editingId
-
-      let targetId: string
-      if (editingId) {
-        await upsert.mutateAsync({ ...payload, id: editingId })
-        targetId = editingId
-      } else {
-        const { data: inserted, error: insertError } = await supabase
-          .from('releases')
-          .insert(payload)
-          .select('id')
-          .single()
-        if (insertError || !inserted?.id) throw insertError ?? new Error('Insert returned no id')
-        targetId = inserted.id
-      }
-
-      if (targetId) {
-        await saveTracks.mutateAsync({
-          releaseId: targetId,
-          tracks: buildTrackSaveRows(targetId, tracks, uploadedAudioUrls),
-        })
-      }
-
-      toast.success(t('toast.saved'))
-      setDialogOpen(false)
-    } catch (err) {
-      toast.error((err as Error)?.message || t('toast.saveFailed'))
-    }
-  })
+  )
 
   const handleDelete = async (id: string) => {
     try {
