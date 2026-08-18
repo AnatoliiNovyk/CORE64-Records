@@ -245,8 +245,8 @@ export default function AdminReleases() {
 
       toast.success(t('toast.saved'))
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   })
 
@@ -254,8 +254,8 @@ export default function AdminReleases() {
     try {
       await deleteMut.mutateAsync(id)
       toast.success(t('toast.deleted'))
-    } catch {
-      toast.error(t('toast.deleteFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.deleteFailed'))
     }
   }
 

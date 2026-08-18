@@ -28,11 +28,11 @@ export default function AdminVideos() {
 
   const handleSave = async () => {
     if (!editing?.title || !editing?.youtube_url) { toast.error(t('admin.videos.validation.required')); return }
-    try { await upsert.mutateAsync(editing as Record<string, unknown>); toast.success(t('toast.saved')); setDialogOpen(false) } catch { toast.error(t('toast.saveFailed')) }
+    try { await upsert.mutateAsync(editing as Record<string, unknown>); toast.success(t('toast.saved')); setDialogOpen(false) } catch (err) { toast.error((err as Error)?.message || t('toast.saveFailed')) }
   }
 
   const handleDelete = async (id: string) => {
-    try { await deleteMut.mutateAsync(id); toast.success(t('toast.deleted')) } catch { toast.error(t('toast.deleteFailed')) }
+    try { await deleteMut.mutateAsync(id); toast.success(t('toast.deleted')) } catch (err) { toast.error((err as Error)?.message || t('toast.deleteFailed')) }
   }
 
   return (

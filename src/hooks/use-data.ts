@@ -373,8 +373,17 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (item: T) => {
-      const { data, error } = await supabase.from(table).upsert(item).select().maybeSingle()
-      if (error) throw error
+      const cleanItem = { ...item }
+      if (!cleanItem.id) delete cleanItem.id
+
+      const { data, error } = cleanItem.id
+        ? await supabase.from(table).upsert(cleanItem).select().maybeSingle()
+        : await supabase.from(table).insert(cleanItem).select().maybeSingle()
+
+      if (error) {
+        console.error(`Error saving to ${table}:`, error)
+        throw new Error(error.message || 'Failed to save record')
+      }
       return data as T | null
     },
     onSuccess: () => {

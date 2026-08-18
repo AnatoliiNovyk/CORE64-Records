@@ -123,13 +123,13 @@ export default function AdminProducers() {
       await upsert.mutateAsync({ ...editing, avatar_url: avatarUrl, genres, social_links, music_links })
       toast.success(t('toast.saved'))
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 
   const handleDelete = async (id: string) => {
-    try { await deleteMut.mutateAsync(id); toast.success(t('toast.deleted')) } catch { toast.error(t('toast.deleteFailed')) }
+    try { await deleteMut.mutateAsync(id); toast.success(t('toast.deleted')) } catch (err) { toast.error((err as Error)?.message || t('toast.deleteFailed')) }
   }
 
   return (

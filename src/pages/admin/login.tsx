@@ -22,7 +22,7 @@ export default function AdminLogin() {
     const { error } = await signIn(email, password)
     setLoading(false)
     if (error) {
-      setError(t('admin.login.error'))
+      setError(error.message || t('admin.login.error'))
     } else {
       navigate('/admin')
     }
