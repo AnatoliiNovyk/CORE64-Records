@@ -231,7 +231,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <PlayerContext.Provider value={value}>
       {children}
-      <audio ref={audioRef} preload="auto" crossOrigin="anonymous" className="hidden" />
+      <audio ref={audioRef} preload="auto" className="hidden" />
     </PlayerContext.Provider>
   )
 }

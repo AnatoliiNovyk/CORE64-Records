@@ -289,8 +289,8 @@ export function PlayerBar() {
                   </Button>
                 </div>
 
-                {/* Track list for EP/Album */}
-                {player.tracks.length > 1 && (
+                {/* Track list */}
+                {player.tracks.length > 0 && (
                   <div className="mt-2">
                     <p className="mb-2 font-mono text-xs uppercase tracking-widest text-muted-foreground">
                       {t('player.tracklist')}
@@ -313,7 +313,7 @@ export function PlayerBar() {
                               {tr.title}
                             </span>
                             <span className="font-mono text-xs text-muted-foreground">
-                              {tr.duration ? formatTime(tr.duration) : '--:--'}
+                              {tr.duration ? formatTime(tr.duration) : (i === player.currentIndex && player.duration > 0 ? formatTime(player.duration) : '--:--')}
                             </span>
                           </button>
                         ))}

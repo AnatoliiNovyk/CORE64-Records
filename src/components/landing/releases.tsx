@@ -182,7 +182,7 @@ const ReleasesSection = memo(function ReleasesSection() {
                           {tr.title}
                         </span>
                         <span className="font-mono text-xs text-muted-foreground">
-                          {tr.duration ? formatTime(tr.duration) : '--:--'}
+                          {tr.duration ? formatTime(tr.duration) : (currentTrackId === tr.id && player.duration > 0 ? formatTime(player.duration) : '--:--')}
                         </span>
                       </button>
                     )
