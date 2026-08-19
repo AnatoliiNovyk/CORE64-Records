@@ -427,7 +427,7 @@ export default function AdminReleases() {
                 )}
               />
 
-              {formLang === 'en' ? (
+              <div className={formLang === 'en' ? 'block' : 'hidden'}>
                 <Controller
                   control={form.control}
                   name="title"
@@ -438,7 +438,8 @@ export default function AdminReleases() {
                     </div>
                   )}
                 />
-              ) : (
+              </div>
+              <div className={formLang === 'uk' ? 'block' : 'hidden'}>
                 <Controller
                   control={form.control}
                   name="translations"
@@ -450,7 +451,7 @@ export default function AdminReleases() {
                     />
                   )}
                 />
-              )}
+              </div>
 
               <Controller
                 control={form.control}
@@ -498,13 +499,14 @@ export default function AdminReleases() {
                 <FileUpload value={form.watch('cover_art_url')} onChange={setCoverFile} />
               </div>
 
-              {formLang === 'en' ? (
+              <div className={formLang === 'en' ? 'block' : 'hidden'}>
                 <Controller
                   control={form.control}
                   name="description"
                   render={({ field }) => <Textarea placeholder={t('admin.releases.fields.description')} {...field} rows={3} />}
                 />
-              ) : (
+              </div>
+              <div className={formLang === 'uk' ? 'block' : 'hidden'}>
                 <Controller
                   control={form.control}
                   name="translations"
@@ -517,7 +519,7 @@ export default function AdminReleases() {
                     />
                   )}
                 />
-              )}
+              </div>
 
               <Controller
                 control={form.control}
