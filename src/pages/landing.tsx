@@ -23,6 +23,9 @@ export default function LandingPage() {
   const [activeSection, setActiveSection] = useState('home')
   const [mobileOpen, setMobileOpen] = useState(false)
   const logoText = useContentValue('site_logo_text', 'CORE64')
+  const footerRights = useContentValue('footer_rights', t('footer.rights'))
+  const footerGenres = useContentValue('footer_genres', t('footer.genre'))
+  const footerLinkUrl = useContentValue('footer_link_url', '#releases')
 
   const navItems = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }))
 
@@ -139,11 +142,14 @@ export default function LandingPage() {
       <footer className="border-t border-border bg-card py-8">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <p className="font-mono text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {logoText}. {t('footer.rights')}
+            &copy; {new Date().getFullYear()} {logoText}. {footerRights}
           </p>
-          <p className="mt-2 font-mono text-xs text-muted-foreground/60">
-            {t('footer.genre')}
-          </p>
+          <a
+            href={footerLinkUrl || '#releases'}
+            className="mt-2 inline-block font-mono text-xs text-muted-foreground/60 transition-colors hover:text-primary hover:underline underline-offset-4 cursor-pointer"
+          >
+            {footerGenres}
+          </a>
         </div>
       </footer>
     </div>

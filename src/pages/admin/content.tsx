@@ -98,6 +98,34 @@ function ContentItem({ item, onSave, saving }: ContentItemProps) {
   )
 }
 
+const DEFAULT_CONTENT_DEFINITIONS: Array<{
+  section_key: string
+  content_type: 'text' | 'image' | 'html'
+  value: string
+  value_uk: string
+  label: string
+  sort_order: number
+}> = [
+  { section_key: 'site_logo_text', content_type: 'text', value: 'CORE64', value_uk: 'CORE64', label: 'Site Logo Text', sort_order: 1 },
+  { section_key: 'home_hero_title', content_type: 'text', value: 'CORE64 RECORDS', value_uk: 'CORE64 RECORDS', label: 'Hero Title', sort_order: 2 },
+  { section_key: 'home_hero_subtitle', content_type: 'text', value: 'Neurofunk & Drum and Bass Record Label', value_uk: 'Нейрофанк та Драм-н-бейс Лейбл', label: 'Hero Subtitle', sort_order: 3 },
+  { section_key: 'home_hero_tagline', content_type: 'text', value: 'Underground Sound, Elevated.', value_uk: 'Підземний Звук, Піднесений.', label: 'Hero Tagline', sort_order: 4 },
+  { section_key: 'about_title', content_type: 'text', value: 'About the Label', value_uk: 'Про Лейбл', label: 'About Title', sort_order: 5 },
+  { section_key: 'about_text', content_type: 'text', value: 'CORE64 Records is a neurofunk and drum and bass record label dedicated to pushing the boundaries of electronic music.', value_uk: 'CORE64 Records — нейрофанк та драм-н-бейс лейбл, що прагне розширити кордони електронної музики.', label: 'About Text', sort_order: 6 },
+  { section_key: 'about_mission', content_type: 'text', value: 'Our mission is to discover, develop, and deliver the most innovative sounds in underground electronic music.', value_uk: 'Наша місія — відкривати, розвивати та представляти найінноваційніші звуки підземної електронної музики.', label: 'About Mission', sort_order: 7 },
+  { section_key: 'releases_title', content_type: 'text', value: 'Releases', value_uk: 'Релізи', label: 'Releases Section Title', sort_order: 8 },
+  { section_key: 'producers_title', content_type: 'text', value: 'Producers', value_uk: 'Продюсери', label: 'Producers Section Title', sort_order: 9 },
+  { section_key: 'events_title', content_type: 'text', value: 'Events', value_uk: 'Події', label: 'Events Section Title', sort_order: 10 },
+  { section_key: 'video_title', content_type: 'text', value: 'Videos', value_uk: 'Відео', label: 'Video Section Title', sort_order: 11 },
+  { section_key: 'photo_title', content_type: 'text', value: 'Photos', value_uk: 'Фото', label: 'Photo Section Title', sort_order: 12 },
+  { section_key: 'partners_title', content_type: 'text', value: 'Partners & Friends', value_uk: 'Партнери та Друзі', label: 'Partners Section Title', sort_order: 13 },
+  { section_key: 'contact_title', content_type: 'text', value: 'Get in Touch', value_uk: 'Зв\'яжіться з нами', label: 'Contact Section Title', sort_order: 14 },
+  { section_key: 'contact_description', content_type: 'text', value: 'For bookings, demos, press, or general inquiries, drop us a message below.', value_uk: 'Для букингів, демо, преси або загальних запитів, залиште нам повідомлення нижче.', label: 'Contact Section Description', sort_order: 15 },
+  { section_key: 'footer_rights', content_type: 'text', value: 'All rights reserved', value_uk: 'Усі права захищені', label: 'Footer Rights Text', sort_order: 16 },
+  { section_key: 'footer_genres', content_type: 'text', value: 'Neurofunk / DnB / Breakbeat / Techstep', value_uk: 'Neurofunk / DnB / Breakbeat / Techstep', label: 'Footer Genres / Subtitle', sort_order: 17 },
+  { section_key: 'footer_link_url', content_type: 'text', value: '#releases', value_uk: '#releases', label: 'Footer Quick Link URL (#releases, etc.)', sort_order: 18 },
+]
+
 export default function AdminContent() {
   const { t } = useTranslation()
   const { data: content, isLoading } = useSiteContent()
@@ -122,22 +150,23 @@ export default function AdminContent() {
 
     try {
       const updateData: Record<string, unknown> = {
-        id: item.id,
         section_key: item.section_key,
         content_type: item.content_type,
         label: item.label,
         sort_order: item.sort_order,
       }
+      if (item.id) updateData.id = item.id
       if (uploadedUrl) {
         updateData.value = uploadedUrl
+        updateData.value_uk = uploadedUrl
       } else {
-        if (valueEn !== undefined) updateData.value = valueEn
-        if (valueUk !== undefined) updateData.value_uk = valueUk
+        updateData.value = valueEn !== undefined ? valueEn : item.value
+        updateData.value_uk = valueUk !== undefined ? valueUk : (item.value_uk || '')
       }
       await upsert.mutateAsync(updateData)
       toast.success(`${t('toast.saved')}: ${item.label || item.section_key}`)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 
@@ -167,8 +196,8 @@ export default function AdminContent() {
       setNewValueUk('')
       setNewImageFile(null)
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 
@@ -182,8 +211,25 @@ export default function AdminContent() {
     )
   }
 
+  const mergedContent: SiteContent[] = [...(content ?? [])]
+  DEFAULT_CONTENT_DEFINITIONS.forEach(def => {
+    if (!mergedContent.some(c => c.section_key === def.section_key)) {
+      mergedContent.push({
+        id: '',
+        section_key: def.section_key,
+        content_type: def.content_type,
+        value: def.value,
+        value_uk: def.value_uk,
+        label: def.label,
+        sort_order: def.sort_order,
+        created_at: '',
+        updated_at: '',
+      })
+    }
+  })
+
   const sections = new Map<string, SiteContent[]>()
-  content?.forEach(item => {
+  mergedContent.forEach(item => {
     const prefix = item.section_key.split('_')[0]
     if (!sections.has(prefix)) sections.set(prefix, [])
     sections.get(prefix)!.push(item)
