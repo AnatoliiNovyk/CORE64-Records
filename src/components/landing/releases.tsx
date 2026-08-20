@@ -121,6 +121,11 @@ const ReleasesSection = memo(function ReleasesSection() {
                     <p className="font-mono text-xs text-muted-foreground">{release.catalog_number}</p>
                     <h3 className="mt-1 font-mono text-sm font-semibold text-foreground line-clamp-1">{getLocalizedField(release, 'title', i18n.language)}</h3>
                     <p className="text-xs text-muted-foreground">{release.artist_name}</p>
+                    {getLocalizedField(release, 'description', i18n.language) && (
+                      <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2">
+                        {getLocalizedField(release, 'description', i18n.language)}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               )
@@ -147,8 +152,10 @@ const ReleasesSection = memo(function ReleasesSection() {
                 <span className="font-mono text-xs text-muted-foreground">{selected.catalog_number}</span>
               </div>
               <p className="text-sm text-foreground/80">{selected.artist_name}</p>
-              {selected.description && (
-                <p className="text-sm text-muted-foreground">{getLocalizedField(selected, 'description', i18n.language)}</p>
+              {getLocalizedField(selected, 'description', i18n.language) && (
+                <p className="text-sm text-muted-foreground whitespace-pre-line bg-secondary/30 p-3 rounded-md border border-border/50">
+                  {getLocalizedField(selected, 'description', i18n.language)}
+                </p>
               )}
               {selected.release_date && (
                 <p className="text-xs text-muted-foreground">{selected.release_date}</p>

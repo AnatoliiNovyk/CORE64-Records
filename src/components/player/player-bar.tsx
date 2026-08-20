@@ -25,8 +25,10 @@ import { AudioVisualizer } from '@/components/player/audio-visualizer'
 import { ReleaseTypeBadge, formatTime } from '@/components/player/release-helpers'
 import { toast } from 'sonner'
 
+import { getLocalizedField } from '@/hooks/use-data'
+
 export function PlayerBar() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const player = usePlayer()
   const [prevVolume, setPrevVolume] = useState(0.8)
   const track = player.currentTrack
@@ -187,6 +189,11 @@ export function PlayerBar() {
                   <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                     {release.title} · {release.catalog_number}
                   </p>
+                  {getLocalizedField(release, 'description', i18n.language) && (
+                    <p className="mt-2 font-mono text-xs text-muted-foreground/90 max-w-xs line-clamp-3 bg-secondary/30 p-2 rounded border border-border/40">
+                      {getLocalizedField(release, 'description', i18n.language)}
+                    </p>
+                  )}
                 </div>
               </div>
 
