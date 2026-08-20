@@ -374,11 +374,12 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
   return useMutation({
     mutationFn: async (item: T) => {
       const cleanItem = { ...item }
-      if (!cleanItem.id) delete cleanItem.id
+      const id = cleanItem.id as string | undefined
+      if (!id) delete cleanItem.id
 
-      const { data, error } = cleanItem.id
-        ? await supabase.from(table).upsert(cleanItem).select().maybeSingle()
-        : await supabase.from(table).insert(cleanItem).select().maybeSingle()
+      const { data, error } = id
+        ? await supabase.from(table).update(cleanItem as never).eq('id', id).select().maybeSingle()
+        : await supabase.from(table).insert(cleanItem as never).select().maybeSingle()
 
       if (error) {
         console.error(`Error saving to ${table}:`, error)

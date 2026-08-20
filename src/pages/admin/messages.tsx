@@ -24,13 +24,20 @@ export default function AdminMessages() {
 
   const toggleRead = async (msg: ContactMessage) => {
     try {
-      await upsert.mutateAsync({ id: msg.id, is_read: !msg.is_read, name: msg.name, email: msg.email, message: msg.message })
+      await upsert.mutateAsync({ id: msg.id, is_read: !msg.is_read })
       toast.success(msg.is_read ? t('toast.markedUnread') : t('toast.markedRead'))
-    } catch { toast.error(t('toast.saveFailed')) }
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
+    }
   }
 
   const handleDelete = async (id: string) => {
-    try { await deleteMut.mutateAsync(id); toast.success(t('toast.deleted')) } catch { toast.error(t('toast.deleteFailed')) }
+    try {
+      await deleteMut.mutateAsync(id)
+      toast.success(t('toast.deleted'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.deleteFailed'))
+    }
   }
 
   const unreadCount = messages?.filter(m => !m.is_read).length ?? 0
