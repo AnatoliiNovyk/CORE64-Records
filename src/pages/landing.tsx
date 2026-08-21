@@ -97,8 +97,12 @@ export default function LandingPage() {
   const [activeSection, setActiveSection] = useState('home')
   const [mobileOpen, setMobileOpen] = useState(false)
   const logoText = useContentValue('site_logo_text', 'CORE64')
-  const footerRights = useContentValue('footer_rights', t('footer.rights'))
-  const footerGenres = useContentValue('footer_genres', t('footer.genre'))
+  const defaultCopyright = `© ${new Date().getFullYear()} ${logoText}. All rights reserved.`
+  const rawFooterRights = useContentValue('footer_rights', defaultCopyright)
+  const copyrightText = rawFooterRights.includes('{year}')
+    ? rawFooterRights.replace('{year}', String(new Date().getFullYear()))
+    : rawFooterRights
+  const footerGenres = useContentValue('footer_genres', 'Producers / Releases / Events / Video')
 
   const navItems = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }))
 
@@ -207,7 +211,7 @@ export default function LandingPage() {
       <footer className="border-t border-border bg-card pt-8 pb-24 sm:pb-28">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <p className="font-mono text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {logoText}. {footerRights}
+            {copyrightText}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground/60">
             {(footerGenres || 'Producers / Releases / Events / Video')
