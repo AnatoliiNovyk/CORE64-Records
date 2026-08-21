@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSiteContent, useUpsertMutation } from '@/hooks/use-data'
+import { useSiteContent, useUpsertMutation, useDeleteMutation } from '@/hooks/use-data'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,23 +11,42 @@ import { Badge } from '@/components/ui/badge'
 import { FileUpload } from '@/components/ui/file-upload'
 import { LanguageTabs } from '@/components/admin/language-tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Save, Plus } from 'lucide-react'
+import { Save, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import type { SiteContent } from '@/types/database'
 
 interface ContentItemProps {
   item: SiteContent
   onSave: (item: SiteContent, valueEn: string | undefined, valueUk: string | undefined, file: File | null) => void
+  onDelete?: (id: string) => void
   saving: boolean
 }
 
-function ContentItem({ item, onSave, saving }: ContentItemProps) {
+function ContentItem({ item, onSave, onDelete, saving }: ContentItemProps) {
+  const { t } = useTranslation()
   const [lang, setLang] = useState<'en' | 'uk'>('en')
-  const [valueEn, setValueEn] = useState(item.value)
+  const [valueEn, setValueEn] = useState(item.value || '')
   const [valueUk, setValueUk] = useState(item.value_uk || '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [dirty, setDirty] = useState(false)
+
+  useEffect(() => {
+    setValueEn(item.value || '')
+    setValueUk(item.value_uk || '')
+    setDirty(false)
+  }, [item.value, item.value_uk, item.id])
 
   const handleEnChange = useCallback((val: string) => {
     setValueEn(val)
@@ -54,46 +73,71 @@ function ContentItem({ item, onSave, saving }: ContentItemProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start">
+    <div className="flex flex-col gap-3 rounded-md border border-border bg-background/50 p-4 sm:flex-row sm:items-start">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-muted-foreground">{item.section_key}</span>
+          <span className="font-mono text-xs font-semibold text-foreground">{item.section_key}</span>
           <Badge variant="secondary" className="text-[10px]">{item.content_type}</Badge>
         </div>
-        <p className="text-xs text-muted-foreground">{item.label}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{item.label}</p>
         {item.content_type === 'image' ? (
           <div className="mt-2">
             <FileUpload value={item.value} onChange={handleImageChange} />
           </div>
         ) : (
-          <div className="mt-2">
+          <div className="mt-2 space-y-2">
             <LanguageTabs active={lang} onChange={setLang} />
             {lang === 'en' ? (
               <Textarea
                 value={valueEn}
                 onChange={e => handleEnChange(e.target.value)}
                 rows={2}
-                className="mt-2 bg-secondary text-sm"
+                placeholder="English text..."
+                className="bg-secondary/60 text-sm font-sans"
               />
             ) : (
               <Textarea
                 value={valueUk}
                 onChange={e => handleUkChange(e.target.value)}
                 rows={2}
-                className="mt-2 bg-secondary text-sm"
+                placeholder="Український текст..."
+                className="bg-secondary/60 text-sm font-sans"
               />
             )}
           </div>
         )}
       </div>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleSave}
-        disabled={!dirty || saving}
-      >
-        <Save className="h-4 w-4" />
-      </Button>
+      <div className="flex items-center gap-1 self-end sm:self-start">
+        <Button
+          size="sm"
+          variant={dirty ? "default" : "outline"}
+          onClick={handleSave}
+          disabled={!dirty || saving}
+          className="font-mono text-xs"
+        >
+          <Save className="mr-1.5 h-3.5 w-3.5" />
+          {t('admin.common.save')}
+        </Button>
+        {item.id && onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-card">
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('admin.common.delete')}?</AlertDialogTitle>
+                <AlertDialogDescription>{t('admin.common.deleteConfirmation')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('admin.common.cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(item.id)}>{t('admin.common.delete')}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
     </div>
   )
 }
@@ -130,6 +174,7 @@ export default function AdminContent() {
   const { t } = useTranslation()
   const { data: content, isLoading } = useSiteContent()
   const upsert = useUpsertMutation('site_content', 'site_content')
+  const deleteMut = useDeleteMutation('site_content', 'site_content')
   const { upload, uploading } = useFileUpload('content')
   const [newKey, setNewKey] = useState('')
   const [newLabel, setNewLabel] = useState('')
@@ -160,13 +205,22 @@ export default function AdminContent() {
         updateData.value = uploadedUrl
         updateData.value_uk = uploadedUrl
       } else {
-        updateData.value = valueEn !== undefined ? valueEn : item.value
+        updateData.value = valueEn !== undefined ? valueEn : (item.value || '')
         updateData.value_uk = valueUk !== undefined ? valueUk : (item.value_uk || '')
       }
       await upsert.mutateAsync(updateData)
       toast.success(`${t('toast.saved')}: ${item.label || item.section_key}`)
     } catch (err) {
       toast.error((err as Error)?.message || t('toast.saveFailed'))
+    }
+  }
+
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await deleteMut.mutateAsync(id)
+      toast.success(t('toast.deleted'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.deleteFailed'))
     }
   }
 
@@ -211,22 +265,28 @@ export default function AdminContent() {
     )
   }
 
-  const mergedContent: SiteContent[] = [...(content ?? [])]
+  // 1. Initialize with defaults Map
+  const contentMap = new Map<string, SiteContent>()
   DEFAULT_CONTENT_DEFINITIONS.forEach(def => {
-    if (!mergedContent.some(c => c.section_key === def.section_key)) {
-      mergedContent.push({
-        id: '',
-        section_key: def.section_key,
-        content_type: def.content_type,
-        value: def.value,
-        value_uk: def.value_uk,
-        label: def.label,
-        sort_order: def.sort_order,
-        created_at: '',
-        updated_at: '',
-      })
-    }
+    contentMap.set(def.section_key, {
+      id: '',
+      section_key: def.section_key,
+      content_type: def.content_type,
+      value: def.value,
+      value_uk: def.value_uk,
+      label: def.label,
+      sort_order: def.sort_order,
+      created_at: '',
+      updated_at: '',
+    })
   })
+
+  // 2. Overwrite with database items (so DB items with real id & values take precedence)
+  content?.forEach(item => {
+    contentMap.set(item.section_key, item)
+  })
+
+  const mergedContent = Array.from(contentMap.values()).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 
   const sections = new Map<string, SiteContent[]>()
   mergedContent.forEach(item => {
@@ -306,16 +366,17 @@ export default function AdminContent() {
             <CardContent className="space-y-4">
               {items.map(item => (
                 <ContentItem
-                  key={item.id}
+                  key={item.id || item.section_key}
                   item={item}
                   onSave={handleItemSave}
+                  onDelete={handleDeleteItem}
                   saving={uploading}
                 />
               ))}
             </CardContent>
           </Card>
         ))}
-        {(!content || content.length === 0) && (
+        {(!mergedContent || mergedContent.length === 0) && (
           <p className="text-center text-muted-foreground">{t('admin.common.noResults')}</p>
         )}
       </div>
