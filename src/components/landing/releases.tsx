@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink, Play, Pause } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +28,20 @@ const ReleasesSection = memo(function ReleasesSection() {
 
   const genres = ['neurofunk', 'dnb', 'breakbeat', 'techstep']
   const filtered = filter ? releases?.filter(r => r.genre === filter) : releases
+
+  useEffect(() => {
+    const handleSetGenre = (e: Event) => {
+      const customEvent = e as CustomEvent<string>
+      const g = customEvent.detail?.toLowerCase().trim()
+      if (genres.includes(g)) {
+        setFilter(g)
+      } else if (g === 'all') {
+        setFilter(null)
+      }
+    }
+    window.addEventListener('set-release-genre', handleSetGenre)
+    return () => window.removeEventListener('set-release-genre', handleSetGenre)
+  }, [genres])
 
   const isCurrentRelease = (r: Release) => player.release?.id === r.id
   const currentTrackId = player.currentTrack?.id

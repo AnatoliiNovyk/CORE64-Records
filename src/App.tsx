@@ -59,7 +59,7 @@ export default function App() {
   return (
     <PlayerProvider>
       {!hasSupabaseConfig && <ConfigBanner />}
-      <div className="pb-20">
+      <div>
         <Suspense fallback={<LazyFallback />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />

@@ -139,17 +139,40 @@ export default function LandingPage() {
         <ContactSection />
       </main>
 
-      <footer className="border-t border-border bg-card py-8">
+      <footer className="border-t border-border bg-card pt-8 pb-24 sm:pb-28">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <p className="font-mono text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} {logoText}. {footerRights}
           </p>
-          <a
-            href={footerLinkUrl || '#releases'}
-            className="mt-2 inline-block font-mono text-xs text-muted-foreground/60 transition-colors hover:text-primary hover:underline underline-offset-4 cursor-pointer"
-          >
-            {footerGenres}
-          </a>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground/60">
+            {(footerGenres || 'Neurofunk / DnB / Breakbeat / Techstep')
+              .split('/')
+              .map(g => g.trim())
+              .filter(Boolean)
+              .map((genre, idx, arr) => (
+                <span key={genre} className="inline-flex items-center gap-2">
+                  <a
+                    href={footerLinkUrl || '#releases'}
+                    onClick={(e) => {
+                      const norm = genre.toLowerCase().replace(/[^a-z0-9]/g, '')
+                      const targetGenre = norm === 'dnb' ? 'dnb' : norm
+                      const el = document.getElementById('releases')
+                      if (el) {
+                        e.preventDefault()
+                        el.scrollIntoView({ behavior: 'smooth' })
+                        window.dispatchEvent(new CustomEvent('set-release-genre', { detail: targetGenre }))
+                      }
+                    }}
+                    className="transition-colors hover:text-primary hover:underline underline-offset-4 cursor-pointer"
+                  >
+                    {genre}
+                  </a>
+                  {idx < arr.length - 1 && (
+                    <span className="text-muted-foreground/30 select-none">/</span>
+                  )}
+                </span>
+              ))}
+          </div>
         </div>
       </footer>
     </div>
