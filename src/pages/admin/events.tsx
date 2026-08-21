@@ -59,8 +59,8 @@ export default function AdminEvents() {
       await upsert.mutateAsync({ ...editing, date: dateIso, image_url: imageUrl, lineup })
       toast.success(t('toast.saved'))
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 

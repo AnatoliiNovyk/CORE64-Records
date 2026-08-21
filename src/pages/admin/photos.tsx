@@ -40,8 +40,8 @@ export default function AdminPhotos() {
       await upsert.mutateAsync({ ...editing, image_url: imageUrl } as Record<string, unknown>)
       toast.success(t('toast.saved'))
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 

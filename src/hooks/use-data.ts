@@ -356,6 +356,31 @@ export function useAdminMessages() {
   })
 }
 
+const RELATED_QUERY_KEYS: Record<string, string[]> = {
+  admin_releases: ['admin_releases', 'releases'],
+  releases: ['admin_releases', 'releases'],
+  admin_producers: ['admin_producers', 'producers'],
+  producers: ['admin_producers', 'producers'],
+  admin_videos: ['admin_videos', 'videos'],
+  videos: ['admin_videos', 'videos'],
+  admin_photos: ['admin_photos', 'photos'],
+  photos: ['admin_photos', 'photos'],
+  admin_events: ['admin_events', 'events'],
+  events: ['admin_events', 'events'],
+  admin_partners: ['admin_partners', 'partners'],
+  partners: ['admin_partners', 'partners'],
+  admin_messages: ['admin_messages'],
+  site_content: ['site_content'],
+  settings: ['settings', 'setting'],
+}
+
+export function invalidateRelatedQueries(queryClient: { invalidateQueries: (opt: { queryKey: string[] }) => void }, key: string) {
+  const keys = RELATED_QUERY_KEYS[key] ?? [key]
+  keys.forEach(k => {
+    queryClient.invalidateQueries({ queryKey: [k] })
+  })
+}
+
 export function useDeleteMutation(table: string, queryKey: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -364,7 +389,7 @@ export function useDeleteMutation(table: string, queryKey: string) {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] })
+      invalidateRelatedQueries(queryClient, queryKey)
     },
   })
 }
@@ -388,7 +413,7 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
       return data as T | null
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] })
+      invalidateRelatedQueries(queryClient, queryKey)
     },
   })
 }

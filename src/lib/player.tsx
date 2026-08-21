@@ -42,6 +42,12 @@ type Action =
   | { type: 'SET_EXPANDED'; expanded: boolean }
   | { type: 'STOP' }
 
+const getInitialVolume = (): number => {
+  if (typeof window === 'undefined') return 0.8
+  const saved = parseFloat(localStorage.getItem('core64_player_volume') || '0.8')
+  return Number.isFinite(saved) && saved >= 0 && saved <= 1 ? saved : 0.8
+}
+
 const initialState: PlayerState = {
   release: null,
   tracks: [],
@@ -49,7 +55,7 @@ const initialState: PlayerState = {
   isPlaying: false,
   currentTime: 0,
   duration: 0,
-  volume: 0.8,
+  volume: getInitialVolume(),
   shuffle: false,
   repeat: 'off',
   expanded: false,
@@ -152,6 +158,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const setVolume = useCallback((volume: number) => {
     dispatch({ type: 'SET_VOLUME', volume })
     if (audioRef.current) audioRef.current.volume = volume
+    try {
+      localStorage.setItem('core64_player_volume', String(volume))
+    } catch {
+      // Local storage unavailable
+    }
   }, [])
   const toggleShuffle = useCallback(() => dispatch({ type: 'TOGGLE_SHUFFLE' }), [])
   const toggleRepeat = useCallback(() => dispatch({ type: 'TOGGLE_REPEAT' }), [])
@@ -181,19 +192,47 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTrack?.audio_url, state.isPlaying, currentTrack])
 
+  // Media Session API integration
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator) || !currentTrack) return
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title || 'Unknown Track',
+        artist: state.release?.artist_name || 'CORE64 Records',
+        album: state.release?.title || 'CORE64 Release',
+        artwork: state.release?.cover_art_url
+          ? [{ src: state.release.cover_art_url, sizes: '512x512', type: 'image/jpeg' }]
+          : [],
+      })
+      navigator.mediaSession.setActionHandler('play', () => play())
+      navigator.mediaSession.setActionHandler('pause', () => pause())
+      navigator.mediaSession.setActionHandler('nexttrack', () => next())
+      navigator.mediaSession.setActionHandler('previoustrack', () => prev())
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined) seek(details.seekTime)
+      })
+    } catch {
+      // MediaSession not supported
+    }
+  }, [currentTrack, state.release, play, pause, next, prev, seek])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
     const onTime = () => dispatch({ type: 'SET_TIME', time: audio.currentTime })
     const onDuration = () => dispatch({ type: 'SET_DURATION', duration: audio.duration || 0 })
+    const onError = () => {
+      console.warn('Audio playback error for track:', currentTrack?.title)
+      dispatch({ type: 'PAUSE' })
+    }
     const onEnded = () => {
       if (state.repeat === 'one') {
         audio.currentTime = 0
         audio.play().catch(() => {})
         return
       }
-      const next = pickNextIndex(state)
-      if (next === -1) {
+      const nextIdx = pickNextIndex(state)
+      if (nextIdx === -1) {
         dispatch({ type: 'PAUSE' })
       } else {
         dispatch({ type: 'NEXT' })
@@ -201,13 +240,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
     audio.addEventListener('timeupdate', onTime)
     audio.addEventListener('loadedmetadata', onDuration)
+    audio.addEventListener('error', onError)
     audio.addEventListener('ended', onEnded)
     return () => {
       audio.removeEventListener('timeupdate', onTime)
       audio.removeEventListener('loadedmetadata', onDuration)
+      audio.removeEventListener('error', onError)
       audio.removeEventListener('ended', onEnded)
     }
-  }, [state])
+  }, [state, currentTrack])
 
   const value: PlayerContextValue = {
     ...state,

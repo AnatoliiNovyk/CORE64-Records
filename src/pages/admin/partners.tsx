@@ -43,8 +43,8 @@ export default function AdminPartners() {
       await upsert.mutateAsync({ ...editing, logo_url: logoUrl } as Record<string, unknown>)
       toast.success(t('toast.saved'))
       setDialogOpen(false)
-    } catch {
-      toast.error(t('toast.saveFailed'))
+    } catch (err) {
+      toast.error((err as Error)?.message || t('toast.saveFailed'))
     }
   }
 
