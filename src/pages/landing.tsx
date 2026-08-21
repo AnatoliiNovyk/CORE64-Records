@@ -17,6 +17,80 @@ import ContactSection from '@/components/landing/contact'
 
 const NAV_IDS = ['home', 'about', 'releases', 'producers', 'video', 'photo', 'events', 'partners', 'contact'] as const
 
+const SECTION_MAP: Record<string, string> = {
+  producers: '#producers',
+  producer: '#producers',
+  продюсери: '#producers',
+  releases: '#releases',
+  release: '#releases',
+  релізи: '#releases',
+  events: '#events',
+  event: '#events',
+  події: '#events',
+  video: '#video',
+  videos: '#video',
+  відео: '#video',
+  photo: '#photo',
+  photos: '#photo',
+  фото: '#photo',
+  about: '#about',
+  'про лейбл': '#about',
+  'про нас': '#about',
+  partners: '#partners',
+  партнери: '#partners',
+  contact: '#contact',
+  контакти: '#contact',
+  home: '#home',
+  головна: '#home',
+}
+
+const GENRE_SET = new Set(['neurofunk', 'dnb', 'breakbeat', 'techstep'])
+
+interface ParsedFooterLink {
+  label: string
+  href: string
+  genreFilter?: string
+}
+
+function parseFooterLink(item: string): ParsedFooterLink {
+  const trimmed = item.trim()
+  
+  // Format: [Label](url)
+  const mdMatch = trimmed.match(/^\[(.*?)\]\((.*?)\)$/)
+  if (mdMatch) {
+    return { label: mdMatch[1].trim(), href: mdMatch[2].trim() }
+  }
+
+  // Format: Label (#url)
+  const parenMatch = trimmed.match(/^(.*?)\s*\((\S+)\)$/)
+  if (parenMatch) {
+    return { label: parenMatch[1].trim(), href: parenMatch[2].trim() }
+  }
+
+  // Format: Label: #url
+  const colonMatch = trimmed.match(/^(.*?)\s*[:=]\s*(\S+)$/)
+  if (colonMatch) {
+    return { label: colonMatch[1].trim(), href: colonMatch[2].trim() }
+  }
+
+  // Plain word matching
+  const key = trimmed.toLowerCase()
+  if (SECTION_MAP[key]) {
+    return { label: trimmed, href: SECTION_MAP[key] }
+  }
+
+  const cleanKey = key.replace(/[^a-z0-9]/g, '')
+  if (GENRE_SET.has(cleanKey)) {
+    return { label: trimmed, href: '#releases', genreFilter: cleanKey }
+  }
+
+  if (trimmed.startsWith('#') || trimmed.startsWith('http') || trimmed.startsWith('/')) {
+    return { label: trimmed, href: trimmed }
+  }
+
+  return { label: trimmed, href: `#${cleanKey}` }
+}
+
 export default function LandingPage() {
   const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
@@ -25,7 +99,6 @@ export default function LandingPage() {
   const logoText = useContentValue('site_logo_text', 'CORE64')
   const footerRights = useContentValue('footer_rights', t('footer.rights'))
   const footerGenres = useContentValue('footer_genres', t('footer.genre'))
-  const footerLinkUrl = useContentValue('footer_link_url', '#releases')
 
   const navItems = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }))
 
@@ -46,7 +119,7 @@ export default function LandingPage() {
           }
         })
       },
-      { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' }
+      { threshold: 0.3 }
     )
 
     NAV_IDS.forEach(id => {
@@ -57,68 +130,60 @@ export default function LandingPage() {
     return () => observer.disconnect()
   }, [])
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-      setMobileOpen(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'glass border-b border-border' : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled ? 'glass border-b border-border shadow-lg' : 'bg-transparent'
         }`}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <button
-            onClick={() => scrollTo('home')}
-            className="font-mono text-xl font-bold text-primary animate-neon-flicker neon-text"
-          >
-            {logoText}
-          </button>
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <a href="#home" className="flex items-center gap-2">
+            <span className="font-mono text-xl font-bold tracking-wider text-primary neon-text">
+              {logoText}
+            </span>
+          </a>
 
           <nav className="hidden items-center gap-1 md:flex">
-            {navItems.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => scrollTo(id)}
+            {navItems.map(item => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
                 className={`rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors ${
-                  activeSection === id
-                    ? 'bg-primary/10 text-primary'
+                  activeSection === item.id
+                    ? 'text-primary font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {label}
-              </button>
+                {item.label}
+              </a>
             ))}
-            <LanguageSwitcher />
           </nav>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
+
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button size="icon" variant="ghost" className="md:hidden">
                   {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64 bg-card">
-                <nav className="mt-8 flex flex-col gap-2">
-                  {navItems.map(({ id, label }) => (
-                    <button
-                      key={id}
-                      onClick={() => scrollTo(id)}
-                      className={`rounded-md px-4 py-2 text-left font-mono text-sm uppercase tracking-wider transition-colors ${
-                        activeSection === id
-                          ? 'bg-primary/10 text-primary'
+              <SheetContent side="right" className="w-64 bg-card pt-12">
+                <nav className="flex flex-col gap-2">
+                  {navItems.map(item => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      onClick={() => setMobileOpen(false)}
+                      className={`rounded-md px-3 py-2 font-mono text-sm uppercase tracking-wider transition-colors ${
+                        activeSection === item.id
+                          ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      {label}
-                    </button>
+                      {item.label}
+                    </a>
                   ))}
                 </nav>
               </SheetContent>
@@ -145,27 +210,29 @@ export default function LandingPage() {
             &copy; {new Date().getFullYear()} {logoText}. {footerRights}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground/60">
-            {(footerGenres || 'Neurofunk / DnB / Breakbeat / Techstep')
+            {(footerGenres || 'Producers / Releases / Events / Video')
               .split('/')
-              .map(g => g.trim())
+              .map(s => s.trim())
               .filter(Boolean)
-              .map((genre, idx, arr) => (
-                <span key={genre} className="inline-flex items-center gap-2">
+              .map(parseFooterLink)
+              .map((link, idx, arr) => (
+                <span key={idx} className="inline-flex items-center gap-2">
                   <a
-                    href={footerLinkUrl || '#releases'}
+                    href={link.href}
                     onClick={(e) => {
-                      const norm = genre.toLowerCase().replace(/[^a-z0-9]/g, '')
-                      const targetGenre = norm === 'dnb' ? 'dnb' : norm
-                      const el = document.getElementById('releases')
-                      if (el) {
+                      if (link.href.startsWith('#')) {
                         e.preventDefault()
-                        el.scrollIntoView({ behavior: 'smooth' })
-                        window.dispatchEvent(new CustomEvent('set-release-genre', { detail: targetGenre }))
+                        const targetId = link.href.slice(1)
+                        const el = document.getElementById(targetId)
+                        if (el) el.scrollIntoView({ behavior: 'smooth' })
+                        if (link.genreFilter) {
+                          window.dispatchEvent(new CustomEvent('set-release-genre', { detail: link.genreFilter }))
+                        }
                       }
                     }}
                     className="transition-colors hover:text-primary hover:underline underline-offset-4 cursor-pointer"
                   >
-                    {genre}
+                    {link.label}
                   </a>
                   {idx < arr.length - 1 && (
                     <span className="text-muted-foreground/30 select-none">/</span>

@@ -166,8 +166,8 @@ const DEFAULT_CONTENT_DEFINITIONS: Array<{
   { section_key: 'contact_title', content_type: 'text', value: 'Get in Touch', value_uk: 'Зв\'яжіться з нами', label: 'Contact Section Title', sort_order: 14 },
   { section_key: 'contact_description', content_type: 'text', value: 'For bookings, demos, press, or general inquiries, drop us a message below.', value_uk: 'Для букингів, демо, преси або загальних запитів, залиште нам повідомлення нижче.', label: 'Contact Section Description', sort_order: 15 },
   { section_key: 'footer_rights', content_type: 'text', value: 'All rights reserved', value_uk: 'Усі права захищені', label: 'Footer Rights Text', sort_order: 16 },
-  { section_key: 'footer_genres', content_type: 'text', value: 'Neurofunk / DnB / Breakbeat / Techstep', value_uk: 'Neurofunk / DnB / Breakbeat / Techstep', label: 'Footer Genres / Subtitle', sort_order: 17 },
-  { section_key: 'footer_link_url', content_type: 'text', value: '#releases', value_uk: '#releases', label: 'Footer Quick Link URL (#releases, etc.)', sort_order: 18 },
+  { section_key: 'footer_genres', content_type: 'text', value: 'Producers / Releases / Events / Video', value_uk: 'Продюсери / Релізи / Події / Відео', label: 'Footer Quick Links (e.g. Producers / Releases / Events / Video)', sort_order: 17 },
+  { section_key: 'footer_link_url', content_type: 'text', value: '#releases', value_uk: '#releases', label: 'Footer Quick Link Fallback URL (#releases, etc.)', sort_order: 18 },
 ]
 
 export default function AdminContent() {
