@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { isR2Configured, uploadToR2, deleteFromR2 } from '@/lib/r2'
 
-const DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024
+const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024 // 100 MB for audio tracks / high-res media
 
 export function useFileUpload(folder: string, maxFileSize?: number) {
   const [uploading, setUploading] = useState(false)
@@ -17,6 +18,18 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
     setUploading(true)
     setError(null)
 
+    // 1. Try Cloudflare R2 if configured
+    if (isR2Configured) {
+      try {
+        const publicUrl = await uploadToR2(file, folder)
+        setUploading(false)
+        return publicUrl
+      } catch (r2Error) {
+        console.warn('R2 upload failed, attempting fallback to Supabase storage:', r2Error)
+      }
+    }
+
+    // 2. Fallback to Supabase Storage
     const ext = file.name.split('.').pop() || 'jpg'
     const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
 
@@ -36,6 +49,15 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
   }
 
   async function remove(url: string): Promise<boolean> {
+    if (!url) return false
+
+    // If it's an R2 URL
+    if (isR2Configured) {
+      const r2Deleted = await deleteFromR2(url)
+      if (r2Deleted) return true
+    }
+
+    // If it's a Supabase storage URL
     const path = extractPath(url)
     if (!path) return false
 
@@ -57,3 +79,4 @@ export function extractPath(url: string): string | null {
   const match = url.match(/\/storage\/v1\/object\/public\/media\/(.+)$/)
   return match ? match[1] : null
 }
+
