@@ -88,8 +88,8 @@ export default function AdminReleases() {
   const upsert = useUpsertMutation<Record<string, unknown>>('releases', 'admin_releases')
   const deleteMut = useDeleteMutation('releases', 'admin_releases')
   const saveTracks = useSaveTracks()
-  const { upload: uploadImage } = useFileUpload('releases')
-  const { upload: uploadAudio } = useFileUpload('tracks', 100 * 1024 * 1024)
+  const { upload: uploadImage, error: uploadImageError } = useFileUpload('releases')
+  const { upload: uploadAudio, error: uploadAudioError } = useFileUpload('tracks', 100 * 1024 * 1024)
   const player = usePlayer()
 
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -201,7 +201,7 @@ export default function AdminReleases() {
           toast.loading('Uploading cover art...', { id: toastId })
           const url = await uploadImage(coverFile)
           if (!url) {
-            toast.error('Cover art upload failed. Please check file format.', { id: toastId })
+            toast.error(`Cover art upload failed: ${uploadImageError || 'Check file format or network'}`, { id: toastId })
             return
           }
           coverUrl = url
@@ -230,7 +230,7 @@ export default function AdminReleases() {
             toast.loading(`Uploading audio for Track ${i + 1}...`, { id: toastId })
             const url = await uploadAudio(file)
             if (!url) {
-              toast.error(`Track ${i + 1}: audio upload failed`, { id: toastId })
+              toast.error(`Track ${i + 1}: audio upload failed (${uploadAudioError || 'Network error'})`, { id: toastId })
               return
             }
             uploadedAudioUrls.set(i, url)

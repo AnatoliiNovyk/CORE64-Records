@@ -11,7 +11,9 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
   async function upload(file: File): Promise<string | null> {
     const limit = maxFileSize ?? DEFAULT_MAX_FILE_SIZE
     if (file.size > limit) {
-      setError('fileTooLarge')
+      const msg = `File is too large (${Math.round(file.size / (1024 * 1024))}MB). Limit is ${Math.round(limit / (1024 * 1024))}MB.`
+      setError(msg)
+      console.error(msg)
       return null
     }
 
@@ -20,35 +22,45 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
 
     // 1. Upload to Supabase Storage
     try {
-      const ext = file.name.split('.').pop() || 'jpg'
+      const ext = file.name?.split('.').pop() || 'jpg'
       const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
+      console.log(`[Storage] Uploading ${file.name} (${file.size} bytes) to ${fileName}...`)
 
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('media')
         .upload(fileName, file, { contentType: file.type || 'application/octet-stream', upsert: true })
 
-      if (!uploadError) {
-        const { data } = supabase.storage.from('media').getPublicUrl(fileName)
+      if (!uploadError && data?.path) {
+        const { data: urlData } = supabase.storage.from('media').getPublicUrl(data.path)
+        console.log(`[Storage] Upload succeeded: ${urlData?.publicUrl}`)
         setUploading(false)
-        return data.publicUrl
+        return urlData?.publicUrl || null
       }
-      console.warn('Supabase storage upload returned error, trying R2:', uploadError)
+      
+      const errMsg = uploadError?.message || 'Storage upload error'
+      console.error('[Storage] Supabase storage upload error:', uploadError)
+      setError(errMsg)
     } catch (err) {
-      console.warn('Supabase storage upload exception:', err)
+      const errMsg = (err as Error)?.message || 'Storage exception'
+      console.error('[Storage] Supabase storage upload exception:', err)
+      setError(errMsg)
     }
 
     // 2. Fallback to Cloudflare R2 if configured
     if (isR2Configured) {
       try {
+        console.log('[Storage] Attempting R2 fallback...')
         const publicUrl = await uploadToR2(file, folder)
-        setUploading(false)
-        return publicUrl
+        if (publicUrl) {
+          console.log(`[Storage] R2 upload succeeded: ${publicUrl}`)
+          setUploading(false)
+          return publicUrl
+        }
       } catch (r2Error) {
-        console.error('R2 upload failed:', r2Error)
+        console.error('[Storage] R2 fallback failed:', r2Error)
       }
     }
 
-    setError('Upload failed')
     setUploading(false)
     return null
   }
