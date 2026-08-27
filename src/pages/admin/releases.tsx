@@ -30,15 +30,15 @@ const RELEASE_TYPES: ReleaseType[] = ['single', 'ep', 'album']
 
 const trackSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Track title required'),
-  duration: z.number().nullable(),
-  audio_url: z.string().nullable(),
-  track_number: z.number(),
+  title: z.string().optional().default(''),
+  duration: z.number().nullable().optional(),
+  audio_url: z.string().nullable().optional(),
+  track_number: z.number().optional().default(1),
 })
 
 const releaseFormSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().optional().default(''),
   catalog_number: z.string().optional().default(''),
   artist_name: z.string().min(1, 'Artist name is required'),
   genre: z.enum(GENRES),
@@ -53,6 +53,15 @@ const releaseFormSchema = z.object({
   is_visible: z.boolean().optional().default(true),
   tracks: z.array(trackSchema),
 }).superRefine((data, ctx) => {
+  const hasTitle = Boolean(data.title?.trim() || data.translations?.uk?.title?.trim())
+  if (!hasTitle) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Title is required',
+      path: ['title'],
+    })
+  }
+
   const min = data.release_type === 'single' ? 1 : data.release_type === 'ep' ? 2 : 7
   const max = data.release_type === 'single' ? 1 : data.release_type === 'ep' ? 6 : null
   if (data.tracks.length < min) {
@@ -190,8 +199,11 @@ export default function AdminReleases() {
         coverUrl = url
       }
 
+      const effectiveTitle = values.title?.trim() || values.translations?.uk?.title?.trim() || 'Untitled Release'
+
       const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
         ...tr,
+        title: tr.title?.trim() || `Track ${i + 1}`,
         track_number: i + 1,
       }))
 
@@ -216,7 +228,7 @@ export default function AdminReleases() {
 
       try {
         const payload: Record<string, unknown> = {
-          title: values.title,
+          title: effectiveTitle,
           catalog_number: values.catalog_number,
           artist_name: values.artist_name,
           genre: values.genre,
