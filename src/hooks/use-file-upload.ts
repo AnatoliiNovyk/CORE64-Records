@@ -4,6 +4,17 @@ import { isR2Configured, uploadToR2, deleteFromR2 } from '@/lib/r2'
 
 const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024 // 100 MB for audio tracks / high-res media
 
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
 export function useFileUpload(folder: string, maxFileSize?: number) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +34,7 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
     // 1. Upload to Supabase Storage
     try {
       const ext = file.name?.split('.').pop() || 'jpg'
-      const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
+      const fileName = `${folder}/${generateUUID()}.${ext}`
       console.log(`[Storage] Uploading ${file.name} (${file.size} bytes) to ${fileName}...`)
 
       const { data, error: uploadError } = await supabase.storage
