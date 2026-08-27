@@ -202,8 +202,10 @@ export default function AdminReleases() {
       const effectiveTitle = values.title?.trim() || values.translations?.uk?.title?.trim() || 'Untitled Release'
 
       const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
-        ...tr,
+        id: tr.id,
         title: tr.title?.trim() || `Track ${i + 1}`,
+        duration: tr.duration ?? null,
+        audio_url: tr.audio_url ?? null,
         track_number: i + 1,
       }))
 
