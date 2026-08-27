@@ -18,38 +18,52 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
     setUploading(true)
     setError(null)
 
-    // 1. Try Cloudflare R2 if configured
+    // 1. Upload to Supabase Storage
+    try {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, { contentType: file.type || 'application/octet-stream', upsert: true })
+
+      if (!uploadError) {
+        const { data } = supabase.storage.from('media').getPublicUrl(fileName)
+        setUploading(false)
+        return data.publicUrl
+      }
+      console.warn('Supabase storage upload returned error, trying R2:', uploadError)
+    } catch (err) {
+      console.warn('Supabase storage upload exception:', err)
+    }
+
+    // 2. Fallback to Cloudflare R2 if configured
     if (isR2Configured) {
       try {
         const publicUrl = await uploadToR2(file, folder)
         setUploading(false)
         return publicUrl
       } catch (r2Error) {
-        console.warn('R2 upload failed, attempting fallback to Supabase storage:', r2Error)
+        console.error('R2 upload failed:', r2Error)
       }
     }
 
-    // 2. Fallback to Supabase Storage
-    const ext = file.name.split('.').pop() || 'jpg'
-    const fileName = `${folder}/${crypto.randomUUID()}.${ext}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('media')
-      .upload(fileName, file, { contentType: file.type, upsert: false })
-
-    if (uploadError) {
-      setError(uploadError.message)
-      setUploading(false)
-      return null
-    }
-
-    const { data } = supabase.storage.from('media').getPublicUrl(fileName)
+    setError('Upload failed')
     setUploading(false)
-    return data.publicUrl
+    return null
   }
 
   async function remove(url: string): Promise<boolean> {
     if (!url) return false
+
+    // If it's a Supabase storage URL
+    const path = extractPath(url)
+    if (path) {
+      const { error: deleteError } = await supabase.storage
+        .from('media')
+        .remove([path])
+      if (!deleteError) return true
+    }
 
     // If it's an R2 URL
     if (isR2Configured) {
@@ -57,19 +71,7 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
       if (r2Deleted) return true
     }
 
-    // If it's a Supabase storage URL
-    const path = extractPath(url)
-    if (!path) return false
-
-    const { error: deleteError } = await supabase.storage
-      .from('media')
-      .remove([path])
-
-    if (deleteError) {
-      setError(deleteError.message)
-      return false
-    }
-    return true
+    return false
   }
 
   return { upload, remove, uploading, error }
@@ -79,4 +81,3 @@ export function extractPath(url: string): string | null {
   const match = url.match(/\/storage\/v1\/object\/public\/media\/(.+)$/)
   return match ? match[1] : null
 }
-

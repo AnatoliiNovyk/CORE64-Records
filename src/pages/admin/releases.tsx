@@ -192,57 +192,67 @@ export default function AdminReleases() {
 
   const handleSave = form.handleSubmit(
     async (values) => {
-      let coverUrl = values.cover_art_url || ''
-      if (coverFile) {
-        const url = await uploadImage(coverFile)
-        if (!url) { toast.error(t('toast.uploadFailed')); return }
-        coverUrl = url
-      }
-
-      const effectiveTitle = values.title?.trim() || values.translations?.uk?.title?.trim() || 'Untitled Release'
-
-      const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
-        id: tr.id,
-        title: tr.title?.trim() || `Track ${i + 1}`,
-        duration: tr.duration ?? null,
-        audio_url: tr.audio_url ?? null,
-        track_number: i + 1,
-      }))
-
-      const uploadedAudioUrls = new Map<number, string>()
-
-      for (let i = 0; i < tracks.length; i++) {
-        const existingAudioUrl = tracks[i].audio_url
-        const file = audioFiles.get(i)
-        if (!existingAudioUrl && !file) {
-          toast.error(`Track ${i + 1}: audio file required`)
-          return
-        }
-        if (file) {
-          const url = await uploadAudio(file)
-          if (!url) {
-            toast.error(`Track ${i + 1}: upload failed — check file size or connection`)
-            return
-          }
-          uploadedAudioUrls.set(i, url)
-        }
-      }
+      console.log('Submitting release form with values:', values)
+      const toastId = toast.loading('Saving release...')
 
       try {
+        let coverUrl = values.cover_art_url || ''
+        if (coverFile) {
+          toast.loading('Uploading cover art...', { id: toastId })
+          const url = await uploadImage(coverFile)
+          if (!url) {
+            toast.error('Cover art upload failed. Please check file format.', { id: toastId })
+            return
+          }
+          coverUrl = url
+        }
+
+        const effectiveTitle = values.title?.trim() || values.translations?.uk?.title?.trim() || 'Untitled Release'
+
+        const tracks: TrackFormValue[] = values.tracks.map((tr, i) => ({
+          id: tr.id,
+          title: tr.title?.trim() || `Track ${i + 1}`,
+          duration: tr.duration ?? null,
+          audio_url: tr.audio_url ?? null,
+          track_number: i + 1,
+        }))
+
+        const uploadedAudioUrls = new Map<number, string>()
+
+        for (let i = 0; i < tracks.length; i++) {
+          const existingAudioUrl = tracks[i].audio_url
+          const file = audioFiles.get(i)
+          if (!existingAudioUrl && !file) {
+            toast.error(`Track ${i + 1}: audio file required`, { id: toastId })
+            return
+          }
+          if (file) {
+            toast.loading(`Uploading audio for Track ${i + 1}...`, { id: toastId })
+            const url = await uploadAudio(file)
+            if (!url) {
+              toast.error(`Track ${i + 1}: audio upload failed`, { id: toastId })
+              return
+            }
+            uploadedAudioUrls.set(i, url)
+          }
+        }
+
+        toast.loading('Saving release to database...', { id: toastId })
+
         const payload: Record<string, unknown> = {
           title: effectiveTitle,
           catalog_number: values.catalog_number,
           artist_name: values.artist_name,
           genre: values.genre,
           release_type: values.release_type,
-          release_date: values.release_date,
+          release_date: values.release_date || null,
           cover_art_url: coverUrl,
           description: values.description,
           buy_link: values.buy_link,
           stream_links: values.stream_links,
           translations: values.translations,
-          sort_order: values.sort_order,
-          is_visible: values.is_visible,
+          sort_order: values.sort_order ?? 0,
+          is_visible: values.is_visible ?? true,
         }
         if (editingId) payload.id = editingId
 
@@ -261,24 +271,27 @@ export default function AdminReleases() {
         }
 
         if (targetId) {
+          toast.loading('Saving track list...', { id: toastId })
           await saveTracks.mutateAsync({
             releaseId: targetId,
             tracks: buildTrackSaveRows(targetId, tracks, uploadedAudioUrls),
           })
         }
 
-        toast.success(t('toast.saved'))
+        toast.success(t('toast.saved') || 'Saved successfully!', { id: toastId })
         setDialogOpen(false)
       } catch (err) {
-        toast.error((err as Error)?.message || t('toast.saveFailed'))
+        console.error('Save release error:', err)
+        toast.error((err as Error)?.message || t('toast.saveFailed') || 'Save failed', { id: toastId })
       }
     },
     (invalidErrors) => {
       console.error('Release form validation failed:', invalidErrors)
-      const firstField = Object.keys(invalidErrors)[0]
-      if (firstField) {
-        const fieldError = invalidErrors[firstField as keyof typeof invalidErrors] as { message?: string }
-        toast.error(`Validation error in ${firstField}: ${fieldError?.message || 'Check required fields'}`)
+      const errorKeys = Object.keys(invalidErrors)
+      if (errorKeys.length > 0) {
+        const firstKey = errorKeys[0]
+        const errObj = invalidErrors[firstKey as keyof typeof invalidErrors] as { message?: string }
+        toast.error(`Please check ${firstKey}: ${errObj?.message || 'Invalid field'}`)
       }
     }
   )
