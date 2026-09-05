@@ -1,14 +1,22 @@
 name: CI
 
+# Deliberately no `pull_request` trigger.
+#
+# This runs on a self-hosted runner on the production VPS, and the repository is
+# public. A `pull_request` trigger would let anyone's fork execute arbitrary
+# workflow code on the box that also runs the site, Supabase and Coolify.
+# Restricting to pushes on `main` removes that: only someone who can already
+# push to `main` can cause the runner to execute anything.
+#
+# Use `workflow_dispatch` to run it by hand from the Actions tab.
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, core64]
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +38,8 @@ jobs:
         run: npm test
 
       # Build last: it is the slowest step and the cheap checks above catch most
-      # failures first.
+      # failures first. The Supabase values are placeholders — the build only
+      # needs them to be present, and nothing here talks to a real project.
       - name: Build
         run: npm run build
         env:
