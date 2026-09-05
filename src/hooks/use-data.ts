@@ -15,6 +15,18 @@ const STORAGE_COLUMNS: Record<string, string[]> = {
   photos: ['image_url'],
   events: ['image_url'],
   partners: ['logo_url'],
+  // site_content keeps an image URL in the same `value` column that otherwise
+  // holds plain text, so it is only a file reference for image rows.
+  site_content: ['value'],
+}
+
+/**
+ * Tables where the columns above only hold a file reference on some rows.
+ * `extractPath` would already reject a plain-text value, but being explicit
+ * keeps a text row that merely quotes a media URL from losing its file.
+ */
+const STORAGE_ROW_GUARD: Record<string, { column: string; equals: string }> = {
+  site_content: { column: 'content_type', equals: 'image' },
 }
 
 /** Storage paths owned by a row, gathered before it is deleted. */
@@ -22,12 +34,17 @@ async function collectStoragePaths(table: string, id: string): Promise<string[]>
   const columns = STORAGE_COLUMNS[table]
   if (!columns) return []
 
+  const guard = STORAGE_ROW_GUARD[table]
+  const selected = guard ? [...columns, guard.column] : columns
+
   const urls: (string | null)[] = []
 
-  const { data } = await supabase.from(table).select(columns.join(',')).eq('id', id).maybeSingle()
+  const { data } = await supabase.from(table).select(selected.join(',')).eq('id', id).maybeSingle()
   if (data) {
     const row = data as unknown as Record<string, string | null>
-    columns.forEach(column => urls.push(row[column]))
+    if (!guard || row[guard.column] === guard.equals) {
+      columns.forEach(column => urls.push(row[column]))
+    }
   }
 
   // A release owns its tracks' audio. The rows cascade on delete, the objects do not.
@@ -54,10 +71,16 @@ async function collectSupersededPaths(
   const columns = STORAGE_COLUMNS[table]?.filter(column => column in incoming)
   if (!columns || columns.length === 0) return []
 
-  const { data } = await supabase.from(table).select(columns.join(',')).eq('id', id).maybeSingle()
+  const guard = STORAGE_ROW_GUARD[table]
+  const selected = guard ? [...columns, guard.column] : columns
+
+  const { data } = await supabase.from(table).select(selected.join(',')).eq('id', id).maybeSingle()
   if (!data) return []
 
-  return supersededPaths(columns, data as unknown as Record<string, string | null>, incoming)
+  const row = data as unknown as Record<string, string | null>
+  if (guard && row[guard.column] !== guard.equals) return []
+
+  return supersededPaths(columns, row, incoming)
 }
 
 /**

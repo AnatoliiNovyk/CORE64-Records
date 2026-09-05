@@ -113,3 +113,18 @@ describe('supersededPaths', () => {
     ).toEqual(['releases/a.jpg'])
   })
 })
+
+describe('supersededPaths — site_content value column', () => {
+  const url = (name: string) => `https://host/storage/v1/object/public/media/${name}`
+
+  it('frees the old image when an image row is replaced', () => {
+    expect(
+      supersededPaths(['value'], { value: url('content/old.png') }, { value: url('content/new.png') })
+    ).toEqual(['content/old.png'])
+  })
+
+  it('leaves plain text alone even though it shares the value column', () => {
+    // Text rows reach this code path too; extractPath is what stops them.
+    expect(supersededPaths(['value'], { value: 'CORE64 RECORDS' }, { value: 'CORE64' })).toEqual([])
+  })
+})
