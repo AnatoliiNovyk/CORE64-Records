@@ -10,19 +10,22 @@
 # Contains no credentials: it pulls both files from the public repository.
 set -euo pipefail
 
+# raw.githubusercontent.com sits behind a CDN that caches for a few minutes, so a
+# freshly pushed file can come back stale. CB busts that cache per run.
 RAW=https://raw.githubusercontent.com/AnatoliiNovyk/CORE64-Records/main
+CB="?cb=$(date +%s)"
 DB=supabase-db-u1u6nno8jxtc1tsqv1arokts
 EDGE=supabase-edge-functions-u1u6nno8jxtc1tsqv1arokts
 FNDIR=/data/coolify/services/supabase/volumes/functions/submit-contact
 KONG=https://supabasekong.169.58.250.236.sslip.io
 
 echo "== 1/4 applying SQL migration =="
-curl -fsSL "$RAW/supabase/migrations/20260905120000_restore_storage_rls_and_contact_rate_limits.sql" \
+curl -fsSL "$RAW/supabase/migrations/20260905120000_restore_storage_rls_and_contact_rate_limits.sql$CB" \
   | docker exec -i "$DB" psql -v ON_ERROR_STOP=1 -U postgres -d postgres
 
 echo "== 2/4 deploying submit-contact edge function =="
 mkdir -p "$FNDIR"
-curl -fsSL "$RAW/supabase/functions/submit-contact/index.ts" -o "$FNDIR/index.ts"
+curl -fsSL "$RAW/supabase/functions/submit-contact/index.ts$CB" -o "$FNDIR/index.ts"
 wc -l "$FNDIR/index.ts"
 
 echo "== 3/4 restarting edge runtime =="
