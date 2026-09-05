@@ -25,6 +25,8 @@ The admin seed aborts the transaction rather than risk locking the owner out.
 */
 
 
+BEGIN;
+
 -- 1. Real admin registry ------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -58,10 +60,13 @@ DROP POLICY IF EXISTS "Public read contact_messages" ON public.contact_messages;
 DROP POLICY IF EXISTS "Public insert contact"        ON public.contact_messages;
 DROP POLICY IF EXISTS "Admin contact_messages"       ON public.contact_messages;
 
+DROP POLICY IF EXISTS "admin_read_contact_messages"   ON public.contact_messages;
 CREATE POLICY "admin_read_contact_messages"   ON public.contact_messages FOR SELECT
   TO authenticated USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_contact_messages" ON public.contact_messages;
 CREATE POLICY "admin_update_contact_messages" ON public.contact_messages FOR UPDATE
   TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_contact_messages" ON public.contact_messages;
 CREATE POLICY "admin_delete_contact_messages" ON public.contact_messages FOR DELETE
   TO authenticated USING (public.is_admin());
 -- No INSERT policy: the submit-contact edge function writes via service_role.
@@ -97,11 +102,14 @@ DROP POLICY IF EXISTS "Allow all on storage buckets"        ON storage.buckets;
 DROP POLICY IF EXISTS "Authenticated upload media objects"  ON storage.objects;
 -- "Public read media objects" is deliberately kept: it serves the site.
 
+DROP POLICY IF EXISTS "admin_insert_media" ON storage.objects;
 CREATE POLICY "admin_insert_media" ON storage.objects FOR INSERT
   TO authenticated WITH CHECK (bucket_id='media' AND public.is_admin());
+DROP POLICY IF EXISTS "admin_update_media" ON storage.objects;
 CREATE POLICY "admin_update_media" ON storage.objects FOR UPDATE
   TO authenticated USING (bucket_id='media' AND public.is_admin())
   WITH CHECK (bucket_id='media' AND public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_media" ON storage.objects;
 CREATE POLICY "admin_delete_media" ON storage.objects FOR DELETE
   TO authenticated USING (bucket_id='media' AND public.is_admin());
 
@@ -111,3 +119,4 @@ GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
 GRANT SELECT ON storage.objects, storage.buckets TO anon, authenticated;
 GRANT ALL ON storage.objects, storage.buckets TO service_role;
 
+COMMIT;
