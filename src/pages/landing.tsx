@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,13 +7,17 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { useContentValue } from '@/hooks/use-data'
 import HeroSection from '@/components/landing/hero'
 import AboutSection from '@/components/landing/about'
-import ReleasesSection from '@/components/landing/releases'
-import ProducersSection from '@/components/landing/producers'
-import VideoSection from '@/components/landing/video'
-import PhotoSection from '@/components/landing/photo'
-import EventsSection from '@/components/landing/events'
-import PartnersSection from '@/components/landing/partners'
-import ContactSection from '@/components/landing/contact'
+
+// Hero and About are above the fold and stay in the entry chunk. Everything
+// below it is split out, so the first paint no longer waits on the carousel,
+// the audio player wiring or the contact form's validation stack.
+const ReleasesSection = lazy(() => import('@/components/landing/releases'))
+const ProducersSection = lazy(() => import('@/components/landing/producers'))
+const VideoSection = lazy(() => import('@/components/landing/video'))
+const PhotoSection = lazy(() => import('@/components/landing/photo'))
+const EventsSection = lazy(() => import('@/components/landing/events'))
+const PartnersSection = lazy(() => import('@/components/landing/partners'))
+const ContactSection = lazy(() => import('@/components/landing/contact'))
 
 const NAV_IDS = ['home', 'about', 'releases', 'producers', 'video', 'photo', 'events', 'partners', 'contact'] as const
 
@@ -126,12 +130,27 @@ export default function LandingPage() {
       { threshold: 0.3 }
     )
 
-    NAV_IDS.forEach(id => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
-    })
+    // Sections below the fold mount asynchronously, so observing once on mount
+    // would miss every one of them. Re-attach as they appear.
+    const observed = new Set<Element>()
+    const attach = () => {
+      NAV_IDS.forEach(id => {
+        const el = document.getElementById(id)
+        if (el && !observed.has(el)) {
+          observer.observe(el)
+          observed.add(el)
+        }
+      })
+    }
+    attach()
 
-    return () => observer.disconnect()
+    const mutations = new MutationObserver(attach)
+    mutations.observe(document.body, { childList: true, subtree: true })
+
+    return () => {
+      observer.disconnect()
+      mutations.disconnect()
+    }
   }, [])
 
   return (
@@ -199,13 +218,15 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <AboutSection />
-        <ReleasesSection />
-        <ProducersSection />
-        <VideoSection />
-        <PhotoSection />
-        <EventsSection />
-        <PartnersSection />
-        <ContactSection />
+        <Suspense fallback={<div className="min-h-[50vh]" />}>
+          <ReleasesSection />
+          <ProducersSection />
+          <VideoSection />
+          <PhotoSection />
+          <EventsSection />
+          <PartnersSection />
+          <ContactSection />
+        </Suspense>
       </main>
 
       <footer className="border-t border-border bg-card pt-8 pb-24 sm:pb-28">
