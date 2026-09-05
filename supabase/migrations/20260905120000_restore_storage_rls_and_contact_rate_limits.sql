@@ -1,102 +1,113 @@
 /*
-# Restore storage RLS, add contact_rate_limits, harden contact_messages (self-hosted VPS)
+# Restore real authorization on the self-hosted stack
 
 ## Overview
-The self-hosted database on the VPS drifted from this repository:
+The VPS database had drifted far from this repository. Verified live before changing
+anything:
 
-1. `contact_rate_limits` was never created there — `vps_migration_public.sql` omitted it.
-   The `submit-contact` edge function queries it first, so the contact form cannot work
-   until the table exists.
-2. `20260801160000_harden_contact_messages.sql` was never applied there, so the anonymous
-   INSERT policy on `contact_messages` and the missing length limits are still in place.
-3. An operations script applied `FOR ALL USING (true) WITH CHECK (true)` policies to
-   `storage.objects` and `storage.buckets` plus `GRANT ALL ... TO anon`, which undid
-   `20260630141943_restrict_storage_listing.sql`. Storage currently accepts anonymous
-   writes and deletes.
-
-This migration is idempotent and safe to re-run.
+- `is_admin()` was a stub returning `auth.role() = 'authenticated'`, so every logged-in
+  user counted as an admin. `admin_users` did not exist at all.
+- GoTrue has `DISABLE_SIGNUP=false`, so anyone could register and immediately inherit
+  those admin rights.
+- `contact_messages` carried `Public read contact_messages` (SELECT to `public`), so every
+  submitted message was world-readable, plus `Public insert contact` and an
+  `Admin contact_messages` policy whose USING clause was literally `true`.
+- `storage.objects` and `storage.buckets` carried `Allow all ... USING (true) WITH CHECK
+  (true)` for `public`, and `Authenticated upload media objects` gated only on being
+  logged in.
+- `contact_rate_limits` was missing, so the submit-contact edge function could not run.
 
 ## Data safety
-- No rows are read, modified or deleted.
-- Storage GRANT changes are deliberately narrow: only INSERT/UPDATE/DELETE are revoked
-  from `anon`. `USAGE` on the schema and `SELECT` are left intact so that public object
-  serving and any existing read paths keep working.
-- The CHECK constraints are added NOT VALID so pre-existing rows are untouched.
+No rows are read, modified or deleted. Storage grants are narrowed rather than reset:
+only INSERT/UPDATE/DELETE are revoked from `anon`, leaving USAGE and SELECT so public
+object serving keeps working. CHECK constraints are NOT VALID so existing rows stand.
+The admin seed aborts the transaction rather than risk locking the owner out.
 */
 
--- ============================================================
--- 1. contact_rate_limits (required by the submit-contact function)
--- ============================================================
+
+-- 1. Real admin registry ------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.admin_users (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "admin_read_admin_users" ON public.admin_users;
+CREATE POLICY "admin_read_admin_users" ON public.admin_users FOR SELECT
+  TO authenticated USING (auth.uid() = id);
+
+INSERT INTO public.admin_users (id)
+SELECT id FROM auth.users WHERE email = 'anovyk@gmail.com'
+ON CONFLICT (id) DO NOTHING;
+
+-- Abort rather than lock the owner out of their own admin panel.
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.admin_users) = 0 THEN
+    RAISE EXCEPTION 'admin_users seed produced no rows - aborting';
+  END IF;
+END $$;
+
+-- 2. is_admin() stops meaning "any logged-in user" ----------------------
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$ SELECT EXISTS (SELECT 1 FROM public.admin_users WHERE id = auth.uid()) $$;
+
+-- 3. contact_messages ---------------------------------------------------
+DROP POLICY IF EXISTS "Public read contact_messages" ON public.contact_messages;
+DROP POLICY IF EXISTS "Public insert contact"        ON public.contact_messages;
+DROP POLICY IF EXISTS "Admin contact_messages"       ON public.contact_messages;
+
+CREATE POLICY "admin_read_contact_messages"   ON public.contact_messages FOR SELECT
+  TO authenticated USING (public.is_admin());
+CREATE POLICY "admin_update_contact_messages" ON public.contact_messages FOR UPDATE
+  TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+CREATE POLICY "admin_delete_contact_messages" ON public.contact_messages FOR DELETE
+  TO authenticated USING (public.is_admin());
+-- No INSERT policy: the submit-contact edge function writes via service_role.
+
 CREATE TABLE IF NOT EXISTS public.contact_rate_limits (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   ip text NOT NULL,
   created_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.contact_rate_limits ENABLE ROW LEVEL SECURITY;
--- Intentionally no policies: deny-all for anon/authenticated. The edge function uses the
--- service role, which bypasses RLS.
-
-CREATE INDEX IF NOT EXISTS idx_contact_rate_limits_ip ON public.contact_rate_limits(ip);
+CREATE INDEX IF NOT EXISTS idx_contact_rate_limits_ip      ON public.contact_rate_limits(ip);
 CREATE INDEX IF NOT EXISTS idx_contact_rate_limits_created ON public.contact_rate_limits(created_at);
-
--- ============================================================
--- 2. contact_messages: revoke the direct anonymous write path
--- ============================================================
-DROP POLICY IF EXISTS "public_insert_contact_messages" ON public.contact_messages;
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_name_len_check') THEN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_messages_name_len_check') THEN
     ALTER TABLE public.contact_messages ADD CONSTRAINT contact_messages_name_len_check
-      CHECK (char_length(btrim(name)) BETWEEN 1 AND 100) NOT VALID;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_email_len_check') THEN
+      CHECK (char_length(btrim(name)) BETWEEN 1 AND 100) NOT VALID; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_messages_email_len_check') THEN
     ALTER TABLE public.contact_messages ADD CONSTRAINT contact_messages_email_len_check
-      CHECK (char_length(btrim(email)) BETWEEN 1 AND 254) NOT VALID;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_subject_len_check') THEN
+      CHECK (char_length(btrim(email)) BETWEEN 1 AND 254) NOT VALID; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_messages_subject_len_check') THEN
     ALTER TABLE public.contact_messages ADD CONSTRAINT contact_messages_subject_len_check
-      CHECK (subject IS NULL OR char_length(subject) <= 200) NOT VALID;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_messages_message_len_check') THEN
+      CHECK (subject IS NULL OR char_length(subject) <= 200) NOT VALID; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_messages_message_len_check') THEN
     ALTER TABLE public.contact_messages ADD CONSTRAINT contact_messages_message_len_check
-      CHECK (char_length(btrim(message)) BETWEEN 1 AND 5000) NOT VALID;
-  END IF;
+      CHECK (char_length(btrim(message)) BETWEEN 1 AND 5000) NOT VALID; END IF;
 END $$;
 
--- ============================================================
--- 3. Storage: remove the anonymous free-for-all
--- ============================================================
-DROP POLICY IF EXISTS "Allow all on storage objects" ON storage.objects;
-DROP POLICY IF EXISTS "Allow all on storage buckets" ON storage.buckets;
+-- 4. Storage -------------------------------------------------------------
+DROP POLICY IF EXISTS "Allow all on storage objects"        ON storage.objects;
+DROP POLICY IF EXISTS "Allow all on storage buckets"        ON storage.buckets;
+DROP POLICY IF EXISTS "Authenticated upload media objects"  ON storage.objects;
+-- "Public read media objects" is deliberately kept: it serves the site.
 
--- Narrow revoke: keep USAGE and SELECT, drop write rights from anonymous callers.
+CREATE POLICY "admin_insert_media" ON storage.objects FOR INSERT
+  TO authenticated WITH CHECK (bucket_id='media' AND public.is_admin());
+CREATE POLICY "admin_update_media" ON storage.objects FOR UPDATE
+  TO authenticated USING (bucket_id='media' AND public.is_admin())
+  WITH CHECK (bucket_id='media' AND public.is_admin());
+CREATE POLICY "admin_delete_media" ON storage.objects FOR DELETE
+  TO authenticated USING (bucket_id='media' AND public.is_admin());
+
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON storage.objects FROM anon;
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON storage.buckets FROM anon;
-
--- Make sure the roles storage-api relies on still have what they need.
 GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
 GRANT SELECT ON storage.objects, storage.buckets TO anon, authenticated;
 GRANT ALL ON storage.objects, storage.buckets TO service_role;
 
--- Admin-only writes on the media bucket, matching the repository migrations.
-DROP POLICY IF EXISTS "admin_list_media" ON storage.objects;
-CREATE POLICY "admin_list_media" ON storage.objects FOR SELECT
-  TO authenticated USING (bucket_id = 'media' AND public.is_admin());
-
-DROP POLICY IF EXISTS "admin_upload_media" ON storage.objects;
-CREATE POLICY "admin_upload_media" ON storage.objects FOR INSERT
-  TO authenticated WITH CHECK (bucket_id = 'media' AND public.is_admin());
-
-DROP POLICY IF EXISTS "admin_update_media" ON storage.objects;
-CREATE POLICY "admin_update_media" ON storage.objects FOR UPDATE
-  TO authenticated USING (bucket_id = 'media' AND public.is_admin())
-  WITH CHECK (bucket_id = 'media' AND public.is_admin());
-
-DROP POLICY IF EXISTS "admin_delete_media" ON storage.objects;
-CREATE POLICY "admin_delete_media" ON storage.objects FOR DELETE
-  TO authenticated USING (bucket_id = 'media' AND public.is_admin());
-
--- The 'media' bucket stays public, so anonymous reads continue to be served through
--- /storage/v1/object/public/... without needing a SELECT policy here.

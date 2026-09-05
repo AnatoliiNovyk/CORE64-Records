@@ -31,13 +31,14 @@ sleep 8
 
 echo "== 4/4 verification =="
 q() { docker exec -i "$DB" psql -U postgres -d postgres -tAc "$1"; }
+echo -n "is_admin() is real ................. "; q "select case when prosrc like '%admin_users%' then 'yes' else 'STUB' end from pg_proc where proname='is_admin'"
 echo -n "contact_rate_limits exists ......... "; q "select coalesce(to_regclass('public.contact_rate_limits')::text,'MISSING')"
-echo -n "anon INSERT policies remaining ..... "; q "select count(*) from pg_policies where tablename='contact_messages' and cmd='INSERT'"
+echo -n "public policies on contact_messages . "; q "select count(*) from pg_policies where tablename='contact_messages' and roles::text like '%public%'"
 echo -n "permissive storage policies left ... "; q "select count(*) from pg_policies where schemaname='storage' and policyname like 'Allow all%'"
-echo -n "admin storage policies present ..... "; q "select count(*) from pg_policies where schemaname='storage' and policyname like 'admin_%_media'"
+echo -n "admin storage policies present ..... "; q "select count(*) from pg_policies where schemaname='storage' and policyname in ('admin_insert_media','admin_update_media','admin_delete_media')"
 echo -n "submit-contact endpoint ............ "; curl -s -o /dev/null -w '%{http_code}\n' -X OPTIONS "$KONG/functions/v1/submit-contact"
 echo -n "hello endpoint (control) ........... "; curl -s -o /dev/null -w '%{http_code}\n' -X OPTIONS "$KONG/functions/v1/hello"
 
 echo
-echo "Expected: table present, 0 anon INSERT policies, 0 permissive storage"
-echo "policies, 4 admin media policies, submit-contact 200, hello 200."
+echo "Expected: table present, 0 public policies on contact_messages, 0 permissive storage"
+echo "policies, 3 admin media policies, submit-contact 200, hello 200."
