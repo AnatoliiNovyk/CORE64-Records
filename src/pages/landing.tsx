@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useContentValue } from '@/hooks/use-data'
+import { pickActiveSection, referenceLine, type SectionTop } from '@/lib/section-tracking'
 import HeroSection from '@/components/landing/hero'
 import AboutSection from '@/components/landing/about'
 
@@ -119,36 +120,37 @@ export default function LandingPage() {
   }, [])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id)
-          }
-        })
-      },
-      { threshold: 0.3 }
-    )
-
-    // Sections below the fold mount asynchronously, so observing once on mount
-    // would miss every one of them. Re-attach as they appear.
-    const observed = new Set<Element>()
-    const attach = () => {
-      NAV_IDS.forEach(id => {
+    const update = () => {
+      const tops = NAV_IDS.map((id): SectionTop | null => {
         const el = document.getElementById(id)
-        if (el && !observed.has(el)) {
-          observer.observe(el)
-          observed.add(el)
-        }
-      })
-    }
-    attach()
+        return el ? { id, top: el.getBoundingClientRect().top } : null
+      }).filter((section): section is SectionTop => section !== null)
 
-    const mutations = new MutationObserver(attach)
+      if (tops.length === 0) return
+
+      // At the very bottom the final section may be too short to reach the
+      // line, so nothing would ever mark it active.
+      const atBottom =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2
+
+      const next = atBottom
+        ? tops[tops.length - 1].id
+        : pickActiveSection(tops, referenceLine(window.innerHeight))
+
+      if (next) setActiveSection(next)
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+
+    // Sections below the fold mount asynchronously and change the geometry.
+    const mutations = new MutationObserver(update)
     mutations.observe(document.body, { childList: true, subtree: true })
 
     return () => {
-      observer.disconnect()
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
       mutations.disconnect()
     }
   }, [])
