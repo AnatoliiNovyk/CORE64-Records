@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { isR2Configured, uploadToR2, deleteFromR2 } from '@/lib/r2'
 
 const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024 // 100 MB for audio tracks / high-res media
 
@@ -57,21 +56,6 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
       setError(errMsg)
     }
 
-    // 2. Fallback to Cloudflare R2 if configured
-    if (isR2Configured) {
-      try {
-        console.log('[Storage] Attempting R2 fallback...')
-        const publicUrl = await uploadToR2(file, folder)
-        if (publicUrl) {
-          console.log(`[Storage] R2 upload succeeded: ${publicUrl}`)
-          setUploading(false)
-          return publicUrl
-        }
-      } catch (r2Error) {
-        console.error('[Storage] R2 fallback failed:', r2Error)
-      }
-    }
-
     setUploading(false)
     return null
   }
@@ -79,19 +63,12 @@ export function useFileUpload(folder: string, maxFileSize?: number) {
   async function remove(url: string): Promise<boolean> {
     if (!url) return false
 
-    // If it's a Supabase storage URL
     const path = extractPath(url)
     if (path) {
       const { error: deleteError } = await supabase.storage
         .from('media')
         .remove([path])
       if (!deleteError) return true
-    }
-
-    // If it's an R2 URL
-    if (isR2Configured) {
-      const r2Deleted = await deleteFromR2(url)
-      if (r2Deleted) return true
     }
 
     return false
