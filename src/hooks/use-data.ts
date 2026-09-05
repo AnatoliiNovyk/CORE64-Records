@@ -2,7 +2,83 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
+import { extractPath } from '@/hooks/use-file-upload'
 import type { SiteContent, Release, Producer, Video, Photo, Event, Partner, ContactMessage, Setting, Track } from '@/types/database'
+
+/**
+ * Columns holding a Supabase Storage URL. Deleting a row does not touch the
+ * bucket, so without this the object stays there for good.
+ */
+const STORAGE_COLUMNS: Record<string, string[]> = {
+  releases: ['cover_art_url'],
+  producers: ['avatar_url'],
+  photos: ['image_url'],
+  events: ['image_url'],
+  partners: ['logo_url'],
+}
+
+/** Storage paths owned by a row, gathered before it is deleted. */
+async function collectStoragePaths(table: string, id: string): Promise<string[]> {
+  const columns = STORAGE_COLUMNS[table]
+  if (!columns) return []
+
+  const urls: (string | null)[] = []
+
+  const { data } = await supabase.from(table).select(columns.join(',')).eq('id', id).maybeSingle()
+  if (data) {
+    const row = data as unknown as Record<string, string | null>
+    columns.forEach(column => urls.push(row[column]))
+  }
+
+  // A release owns its tracks' audio. The rows cascade on delete, the objects do not.
+  if (table === 'releases') {
+    const { data: tracks } = await supabase.from('tracks').select('audio_url').eq('release_id', id)
+    ;(tracks ?? []).forEach(track => urls.push((track as { audio_url: string | null }).audio_url))
+  }
+
+  return urls
+    .map(url => (url ? extractPath(url) : null))
+    .filter((path): path is string => Boolean(path))
+}
+
+/**
+ * Files the stored row points at that the incoming update no longer references
+ * — i.e. images that were just replaced. Columns the update leaves untouched
+ * are ignored, so a partial update never deletes a file still in use.
+ */
+async function collectSupersededPaths(
+  table: string,
+  id: string,
+  incoming: Record<string, unknown>
+): Promise<string[]> {
+  const columns = STORAGE_COLUMNS[table]?.filter(column => column in incoming)
+  if (!columns || columns.length === 0) return []
+
+  const { data } = await supabase.from(table).select(columns.join(',')).eq('id', id).maybeSingle()
+  if (!data) return []
+
+  return supersededPaths(columns, data as unknown as Record<string, string | null>, incoming)
+}
+
+/**
+ * Pure half of the replaced-file check, split out so the comparison is testable:
+ * getting it wrong means deleting a file that is still in use.
+ */
+export function supersededPaths(
+  columns: string[],
+  current: Record<string, string | null>,
+  incoming: Record<string, unknown>
+): string[] {
+  return columns
+    .filter(column => {
+      const before = current[column]
+      // Only a real replacement counts. An unchanged value, an absent column or
+      // a row that never had a file must all leave the bucket alone.
+      return Boolean(before) && before !== incoming[column]
+    })
+    .map(column => extractPath(current[column] as string))
+    .filter((path): path is string => Boolean(path))
+}
 
 export interface TrackSaveRow {
   id?: string
@@ -385,8 +461,21 @@ export function useDeleteMutation(table: string, queryKey: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
+      // Read the file references while the row still exists.
+      const paths = await collectStoragePaths(table, id)
+
       const { error } = await supabase.from(table).delete().eq('id', id)
       if (error) throw error
+
+      // Best effort: the row is already gone, so a failed cleanup must not be
+      // reported as a failed delete. The worst case is an orphaned object,
+      // which is exactly what happened before this existed.
+      if (paths.length > 0) {
+        const { error: storageError } = await supabase.storage.from('media').remove(paths)
+        if (storageError) {
+          console.error('[Storage] failed to remove orphaned files:', storageError.message, paths)
+        }
+      }
     },
     onSuccess: () => {
       invalidateRelatedQueries(queryClient, queryKey)
@@ -402,6 +491,10 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
       const id = cleanItem.id as string | undefined
       if (!id) delete cleanItem.id
 
+      // Note the files this row points at now, so a replaced image can be
+      // cleared from the bucket once the new one is safely stored.
+      const supersededPaths = id ? await collectSupersededPaths(table, id, item) : []
+
       const { data, error } = id
         ? await supabase.from(table).update(cleanItem as never).eq('id', id).select().maybeSingle()
         : await supabase.from(table).insert(cleanItem as never).select().maybeSingle()
@@ -410,6 +503,16 @@ export function useUpsertMutation<T extends Record<string, unknown>>(table: stri
         console.error(`Error saving to ${table}:`, error)
         throw new Error(error.message || 'Failed to save record')
       }
+
+      // Best effort, and only after the write succeeded — losing the old file
+      // matters far less than losing the record.
+      if (supersededPaths.length > 0) {
+        const { error: storageError } = await supabase.storage.from('media').remove(supersededPaths)
+        if (storageError) {
+          console.error('[Storage] failed to remove replaced files:', storageError.message)
+        }
+      }
+
       return data as T | null
     },
     onSuccess: () => {
