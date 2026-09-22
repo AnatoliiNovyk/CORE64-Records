@@ -19,6 +19,6 @@ Coolify force deploy uuid `ezvxvp0n6s7wtluw7vylxm4x`
 Smoke: GET https://records.core64.studio/studio → 200
 
 ## Result (Kiev / UTC+3)
-- Commit: (filled after ship)
-- Coolify force deploy: (filled after ship)
-- Smoke: (filled after ship)
+- Commit: `65ba3ec968d2aeb28029feb5b87db8a8425cd55b` (short `65ba3ec`)
+- Coolify force deploy uuid `ezvxvp0n6s7wtluw7vylxm4x` HTTP 200 queued (`dtau0pegeilmyyrxldlksuye`); finished ~11:28 Kyiv; image/commit `65ba3ec968d2aeb28029feb5b87db8a8425cd55b`
+- Smoke: `/studio` 200; hot WAV input TP 0 → alimiter → output TP −1.0 gate PASS; qc.json + output.wav download 200; quiet WAV uses copy (no alimiter)
