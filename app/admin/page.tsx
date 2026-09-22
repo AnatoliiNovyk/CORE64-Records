@@ -25,7 +25,7 @@ export default function AdminPage() {
         seeded if empty on first open
       </p>
       <div className="nav">
-        <a href="/">← Public site</a>
+        <a href="/">← Studio</a>
       </div>
 
       {dbError ? (

@@ -44,3 +44,6 @@ See [`docs/COOLIFY.md`](docs/COOLIFY.md):
 ## Note
 
 Primary app is root `app/` (Next.js 14 + better-sqlite3).
+
+## Product surface
+Primary: studio mastering at `/` (not `/studio`). `/studio` redirects home.

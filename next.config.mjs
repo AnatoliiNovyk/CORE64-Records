@@ -4,5 +4,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["better-sqlite3"],
   },
+  async redirects() {
+    return [
+      { source: "/studio", destination: "/", permanent: true },
+      { source: "/studio/:path*", destination: "/", permanent: true },
+    ];
+  },
 };
 export default nextConfig;
