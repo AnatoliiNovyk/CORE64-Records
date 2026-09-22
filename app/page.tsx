@@ -1,12 +1,11 @@
 export default function HomePage() {
   return (
     <main className="hero">
-      <span className="badge">Local skeleton</span>
+      <span className="badge">Live</span>
       <h1>CORE64 Records — First AI Music Label</h1>
       <p>
-        Public site shell for the First AI Music Label. Admin CRM lives at{" "}
-        <a href="/admin">/admin</a>. Coolify-ready DF; deploy waits on
-        GitHub repo, DNS for records.core64.studio, and Coolify UI login.
+        Live First AI Music Label site for CORE64 Records. Admin CRM lives at{" "}
+        <a href="/admin">/admin</a>.
       </p>
       <div className="nav">
         <a href="/">Home</a>
@@ -15,8 +14,9 @@ export default function HomePage() {
       <div className="card">
         <strong>MVP</strong>
         <p style={{ color: "var(--muted)", marginBottom: 0 }}>
-          Site + CRM (SQLite). Separate from core64.studio landing, suno stacks,
-          and factory packaging. No Redis/Postgres/OpenHands day-1.
+          Site + CRM (SQLite) — honest CRM MVP. Separate from core64.studio
+          landing, suno stacks, and factory packaging. No Redis/Postgres/OpenHands
+          day-1. Auth and cover upload come in later increments.
         </p>
       </div>
     </main>

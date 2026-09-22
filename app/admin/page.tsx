@@ -19,6 +19,11 @@ export default function AdminPage() {
         SQLite CRM shell for releases. Visible gate / Cover Gate stay No / unknown
         until human GO. No Redis/Postgres/OpenHands.
       </p>
+      <p className="muted">
+        {releases.length} release{releases.length === 1 ? "" : "s"}
+        {" · "}
+        seeded if empty on first open
+      </p>
       <div className="nav">
         <a href="/">← Public site</a>
       </div>
