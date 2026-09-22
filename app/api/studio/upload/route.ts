@@ -5,10 +5,12 @@ import { randomUUID } from "crypto";
 import {
   jobDir,
   measureEbur128,
+  metricsFromMeasure,
   probeAudio,
   writeQc,
   type QcJson,
 } from "@/lib/studio/measure";
+import { applyTruePeakSafety, copyInputAsOutput } from "@/lib/studio/master";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,7 +42,7 @@ export async function POST(req: NextRequest) {
     const ext = safeExt(originalName);
     if (!ext) {
       return NextResponse.json(
-        { error: "WAV only for increment 1 (.wav)" },
+        { error: "WAV only for studio v0 (.wav)" },
         { status: 400 }
       );
     }
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
     const dir = jobDir(jobId);
     fs.mkdirSync(dir, { recursive: true });
     const inputPath = path.join(dir, `input${ext}`);
+    const outputPath = path.join(dir, "output.wav");
     const buf = Buffer.from(await blob.arrayBuffer());
     if (buf.length > MAX_BYTES) {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -68,10 +71,10 @@ export async function POST(req: NextRequest) {
 
     const created_at = new Date().toISOString();
     let probe = null as QcJson["probe"];
-    let measure;
+    let inputMeasure;
     try {
       probe = probeAudio(inputPath);
-      measure = measureEbur128(inputPath);
+      inputMeasure = measureEbur128(inputPath);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       const qc: QcJson = {
@@ -87,30 +90,110 @@ export async function POST(req: NextRequest) {
         lra: null,
         gate_dbtp: -1.0,
         gate_pass: null,
-        increment: "measure-only",
-        note: "Increment 1: QC measure only; no alimiter / no output.wav yet",
+        increment: "tp-safety",
+        note: "Increment 2: measure/master failed before safety step",
         error: message,
       };
       writeQc(jobId, qc);
       return NextResponse.json({ jobId, qc }, { status: 500 });
     }
 
+    if (!inputMeasure.ok) {
+      const qc: QcJson = {
+        jobId,
+        status: "error",
+        filename: originalName,
+        created_at,
+        measured_at: new Date().toISOString(),
+        probe,
+        meter: inputMeasure.meter,
+        loudness_lufs: inputMeasure.loudness_lufs,
+        true_peak_dbtp: inputMeasure.true_peak_dbtp,
+        lra: inputMeasure.lra,
+        gate_dbtp: inputMeasure.gate_dbtp,
+        gate_pass: inputMeasure.gate_pass,
+        increment: "tp-safety",
+        note: "Increment 2: input measure failed",
+        input: metricsFromMeasure(inputMeasure),
+        output: null,
+        error: inputMeasure.error,
+      };
+      writeQc(jobId, qc);
+      return NextResponse.json({ jobId, qc }, { status: 500 });
+    }
+
+    const inputMetrics = metricsFromMeasure(inputMeasure);
+    const needsMaster = inputMeasure.gate_pass === false;
+
+    const master = needsMaster
+      ? applyTruePeakSafety(inputPath, outputPath)
+      : copyInputAsOutput(inputPath, outputPath);
+
+    if (!master.ok) {
+      const qc: QcJson = {
+        jobId,
+        status: "error",
+        filename: originalName,
+        created_at,
+        measured_at: new Date().toISOString(),
+        probe,
+        meter: inputMeasure.meter,
+        loudness_lufs: inputMeasure.loudness_lufs,
+        true_peak_dbtp: inputMeasure.true_peak_dbtp,
+        lra: inputMeasure.lra,
+        gate_dbtp: inputMeasure.gate_dbtp,
+        gate_pass: inputMeasure.gate_pass,
+        increment: "tp-safety",
+        note: "Increment 2: true-peak safety / copy failed",
+        input: inputMetrics,
+        output: null,
+        master: {
+          applied: master.applied,
+          method: master.method,
+          filter: master.filter,
+          limit_linear: master.limit_linear,
+          target_dbtp: master.target_dbtp,
+          output_wav: master.output_wav,
+          note: master.note,
+        },
+        error: master.error,
+      };
+      writeQc(jobId, qc);
+      return NextResponse.json({ jobId, qc }, { status: 500 });
+    }
+
+    const outputMeasure = measureEbur128(outputPath);
+    const outputMetrics = outputMeasure.ok
+      ? metricsFromMeasure(outputMeasure)
+      : null;
+
     const qc: QcJson = {
       jobId,
-      status: measure.ok ? "done" : "error",
+      status: outputMeasure.ok ? "done" : "error",
       filename: originalName,
       created_at,
       measured_at: new Date().toISOString(),
       probe,
-      meter: measure.meter,
-      loudness_lufs: measure.loudness_lufs,
-      true_peak_dbtp: measure.true_peak_dbtp,
-      lra: measure.lra,
-      gate_dbtp: measure.gate_dbtp,
-      gate_pass: measure.gate_pass,
-      increment: "measure-only",
-      note: "Increment 1: QC measure only; no alimiter / no output.wav yet",
-      ...(measure.error ? { error: measure.error } : {}),
+      meter: inputMeasure.meter,
+      loudness_lufs: inputMeasure.loudness_lufs,
+      true_peak_dbtp: inputMeasure.true_peak_dbtp,
+      lra: inputMeasure.lra,
+      gate_dbtp: inputMeasure.gate_dbtp,
+      gate_pass: inputMeasure.gate_pass,
+      increment: "tp-safety",
+      note: master.note,
+      input: inputMetrics,
+      output: outputMetrics,
+      master: {
+        applied: master.applied,
+        method: master.method,
+        filter: master.filter,
+        limit_linear: master.limit_linear,
+        target_dbtp: master.target_dbtp,
+        output_wav: master.output_wav,
+        note: master.note,
+      },
+      ...(outputMeasure.error ? { error: outputMeasure.error } : {}),
     };
     writeQc(jobId, qc);
 

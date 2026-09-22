@@ -25,6 +25,23 @@ export type MeasureResult = {
   true_peak_unit_note?: string;
 };
 
+export type QcMetrics = {
+  loudness_lufs: number | null;
+  true_peak_dbtp: number | null;
+  lra: number | null;
+  gate_pass: boolean | null;
+};
+
+export type QcMasterInfo = {
+  applied: boolean;
+  method: "alimiter" | "copy" | "none";
+  filter?: string;
+  limit_linear?: number;
+  target_dbtp: number;
+  output_wav: boolean;
+  note: string;
+};
+
 export type QcJson = {
   jobId: string;
   status: "done" | "error";
@@ -33,13 +50,17 @@ export type QcJson = {
   measured_at: string;
   probe: ProbeInfo | null;
   meter: string;
+  /** Input (before) metrics — kept at top level for Increment 1 compat */
   loudness_lufs: number | null;
   true_peak_dbtp: number | null;
   lra: number | null;
   gate_dbtp: number;
   gate_pass: boolean | null;
-  increment: "measure-only";
+  increment: "measure-only" | "tp-safety";
   note: string;
+  input?: QcMetrics;
+  output?: QcMetrics | null;
+  master?: QcMasterInfo;
   error?: string;
 };
 
@@ -166,4 +187,13 @@ export function writeQc(jobId: string, qc: QcJson): void {
   const dir = jobDir(jobId);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "qc.json"), JSON.stringify(qc, null, 2), "utf-8");
+}
+
+export function metricsFromMeasure(m: MeasureResult): QcMetrics {
+  return {
+    loudness_lufs: m.loudness_lufs,
+    true_peak_dbtp: m.true_peak_dbtp,
+    lra: m.lra,
+    gate_pass: m.gate_pass,
+  };
 }
