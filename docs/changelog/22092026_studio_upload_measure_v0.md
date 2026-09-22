@@ -21,3 +21,8 @@ CRM expansion, factory DSP, alimiter/output.wav (increment 2), apex/suno/HostGua
 Commit: `feat(studio): /studio upload + ebur128 QC measure MVP`
 Coolify force deploy uuid `ezvxvp0n6s7wtluw7vylxm4x`
 Smoke: GET https://records.core64.studio/studio → 200
+
+## Result (Kiev / UTC+3)
+- Commit: `5d8e0628e479fe53f4188ff24e569bd9a2f5db3e` (short `5d8e062`)
+- Coolify force deploy uuid `ezvxvp0n6s7wtluw7vylxm4x` HTTP 200 queued (`lk6x3bd5povjs63po3uqf1r0`); finished; image `5d8e0628e479fe53f4188ff24e569bd9a2f5db3e`
+- Smoke: `/studio` 200; upload+measure+download qc.json OK; ffmpeg in runner
