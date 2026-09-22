@@ -16,9 +16,9 @@
 Hostname = studio product per Anatolii/Alfred GO: користувач одразу в upload→QC→master→download, без маркетингового проміжного шару.
 
 ## Ship
-- Commit: _(fill after push)_
+- Commit: `7a82a9f` (after `70cc624` root move)
 - Coolify force deploy uuid `ezvxvp0n6s7wtluw7vylxm4x`
 - Smoke: GET `/` → 200 studio UI; GET `/studio` → 308/301 → `/`
 
 ## Result (Kiev / UTC+3)
-_(fill after deploy + smoke)_
+Pushed `7a82a9f`. Live still old marketing until Coolify redeploy `ezvxvp0n6s7wtluw7vylxm4x` — waiting deploy.

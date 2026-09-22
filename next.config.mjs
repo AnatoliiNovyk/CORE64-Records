@@ -6,8 +6,8 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      { source: "/studio", destination: "/", permanent: false },
-      { source: "/studio/:path*", destination: "/", permanent: false },
+      { source: "/studio", destination: "/", permanent: true },
+      { source: "/studio/:path*", destination: "/", permanent: true },
     ];
   },
 };
