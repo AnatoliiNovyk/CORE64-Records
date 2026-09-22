@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
   output: "standalone",
   experimental: {
@@ -6,8 +6,8 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      { source: "/studio", destination: "/", permanent: true },
-      { source: "/studio/:path*", destination: "/", permanent: true },
+      { source: "/studio", destination: "/", permanent: false },
+      { source: "/studio/:path*", destination: "/", permanent: false },
     ];
   },
 };
