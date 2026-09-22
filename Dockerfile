@@ -1,30 +1,31 @@
-# Stage 1: Build Vite React App
-FROM node:22-alpine AS builder
-
+# CORE64 Records — First AI Music Label
+# Coolify Application: Dockerfile, port 3000, persistent volume /app/data
+# No OpenHands / Redis / Postgres assumed.
+FROM node:20-bookworm-slim AS deps
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+COPY package.json package-lock.json* ./
+RUN npm install
 
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-
+FROM node:20-bookworm-slim AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build-time Vite variables
-# Anything passed here is inlined into the client bundle by Vite, so only
-# publishable values belong in this list. Never add a secret.
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
-
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Stage 2: Production Nginx Server
-FROM nginx:alpine
-
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+RUN mkdir -p /app/data && chown -R node:node /app
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/data ./data
+COPY --from=builder --chown=node:node /app/scripts ./scripts
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]

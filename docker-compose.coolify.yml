@@ -1,0 +1,25 @@
+# docker-compose.coolify.yml — STUB only
+# Purpose: document a future Coolify-compatible compose shape.
+# This file is NOT deployed. No Coolify application ID is claimed.
+# Do NOT point this at suno stacks or the existing core64.studio nginx app.
+#
+# Future Coolify flow (human UI):
+# 1. New Application (Git or Dockerfile) for records.core64.studio
+# 2. Let Coolify attach Traefik labels on coolify-proxy / coolify network
+# 3. DNS A for records.core64.studio must exist first
+#
+# services:
+#   web:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "3000:3000"
+#     # environment: set in Coolify UI — never commit production secrets
+#     # networks: coolify (assigned by Coolify; do not invent)
+#
+# networks:
+#   coolify:
+#     external: true
+
+services: {}
