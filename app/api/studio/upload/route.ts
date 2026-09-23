@@ -11,6 +11,8 @@ import {
   type QcJson,
 } from "@/lib/studio/measure";
 import { applyTruePeakSafety, copyInputAsOutput } from "@/lib/studio/master";
+import { requireStudioAuth } from "@/lib/studio/auth";
+import { sweepExpiredStudioJobs } from "@/lib/studio/retention";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -39,6 +41,10 @@ function formatLabel(ext: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = requireStudioAuth(req);
+  if (denied) return denied;
+  sweepExpiredStudioJobs();
+
   try {
     const form = await req.formData();
     const file = form.get("file");
