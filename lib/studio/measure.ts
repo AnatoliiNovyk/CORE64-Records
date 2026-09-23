@@ -46,6 +46,8 @@ export type QcJson = {
   jobId: string;
   status: "done" | "error";
   filename: string;
+  /** Original upload extension without dot, e.g. wav|flac|mp3 */
+  original_format?: string;
   created_at: string;
   measured_at: string;
   probe: ProbeInfo | null;

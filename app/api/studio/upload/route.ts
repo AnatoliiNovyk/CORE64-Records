@@ -17,17 +17,25 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const MAX_BYTES = 80 * 1024 * 1024; // 80 MB
-const ALLOWED_EXT = new Set([".wav"]);
+const ALLOWED_EXT = new Set([".wav", ".flac", ".mp3"]);
 const ALLOWED_MIME = new Set([
   "audio/wav",
   "audio/x-wav",
   "audio/wave",
+  "audio/flac",
+  "audio/x-flac",
+  "audio/mpeg",
+  "audio/mp3",
   "application/octet-stream",
 ]);
 
 function safeExt(name: string): string {
   const ext = path.extname(name || "").toLowerCase();
   return ALLOWED_EXT.has(ext) ? ext : "";
+}
+
+function formatLabel(ext: string): string {
+  return ext.replace(/^\./, "");
 }
 
 export async function POST(req: NextRequest) {
@@ -42,14 +50,21 @@ export async function POST(req: NextRequest) {
     const ext = safeExt(originalName);
     if (!ext) {
       return NextResponse.json(
-        { error: "WAV only for studio v0 (.wav)" },
+        {
+          error:
+            "unsupported format: accept .wav, .flac, or .mp3 only",
+          accepted: [".wav", ".flac", ".mp3"],
+        },
         { status: 400 }
       );
     }
     const mime = (blob.type || "").toLowerCase();
     if (mime && !ALLOWED_MIME.has(mime)) {
       return NextResponse.json(
-        { error: `unsupported content-type: ${mime}` },
+        {
+          error: `unsupported content-type: ${mime}`,
+          accepted: [".wav", ".flac", ".mp3"],
+        },
         { status: 400 }
       );
     }
@@ -62,6 +77,7 @@ export async function POST(req: NextRequest) {
     fs.mkdirSync(dir, { recursive: true });
     const inputPath = path.join(dir, `input${ext}`);
     const outputPath = path.join(dir, "output.wav");
+    const original_format = formatLabel(ext);
     const buf = Buffer.from(await blob.arrayBuffer());
     if (buf.length > MAX_BYTES) {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -81,6 +97,7 @@ export async function POST(req: NextRequest) {
         jobId,
         status: "error",
         filename: originalName,
+        original_format,
         created_at,
         measured_at: new Date().toISOString(),
         probe,
@@ -103,6 +120,7 @@ export async function POST(req: NextRequest) {
         jobId,
         status: "error",
         filename: originalName,
+        original_format,
         created_at,
         measured_at: new Date().toISOString(),
         probe,
@@ -134,6 +152,7 @@ export async function POST(req: NextRequest) {
         jobId,
         status: "error",
         filename: originalName,
+        original_format,
         created_at,
         measured_at: new Date().toISOString(),
         probe,
@@ -171,6 +190,7 @@ export async function POST(req: NextRequest) {
       jobId,
       status: outputMeasure.ok ? "done" : "error",
       filename: originalName,
+      original_format,
       created_at,
       measured_at: new Date().toISOString(),
       probe,

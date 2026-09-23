@@ -57,7 +57,7 @@ export default function StudioPage() {
 
   const onUpload = useCallback(async () => {
     if (!file) {
-      setError("Choose a WAV file first");
+      setError("Choose a WAV, FLAC, or MP3 file first");
       return;
     }
     setBusy(true);
@@ -94,21 +94,21 @@ export default function StudioPage() {
       <h1>Recording studio</h1>
       <p className="muted" style={{ marginTop: 0 }}>Primary product on records.core64.studio — upload → QC → TP master → download.</p>
       <p className="muted">
-        Upload a WAV → ebur128 QC → if True Peak &gt; −1.0 dBTP, apply ffmpeg alimiter
-        safety (studio tool, not factory). Download output.wav + qc.json.
+        Upload WAV / FLAC / MP3 → ffmpeg decode → ebur128 QC → if True Peak &gt; −1.0 dBTP,
+        apply ffmpeg alimiter safety (studio tool, not factory). Download output.wav + qc.json.
       </p>
       <div className="nav">
         <a href="/admin">Admin</a>
       </div>
 
       <div className="card" style={{ marginTop: "1.5rem" }}>
-        <strong>Upload WAV</strong>
+        <strong>Upload audio</strong>
         <p className="muted" style={{ marginTop: "0.5rem" }}>
-          Preferred format for v0. FLAC/AIFF later.
+          Accepts WAV, FLAC, or MP3. Output is always output.wav + qc.json.
         </p>
         <input
           type="file"
-          accept=".wav,audio/wav,audio/x-wav"
+          accept=".wav,.flac,.mp3,audio/wav,audio/x-wav,audio/wave,audio/flac,audio/x-flac,audio/mpeg,audio/mp3"
           disabled={busy}
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />

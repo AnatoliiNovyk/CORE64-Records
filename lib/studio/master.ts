@@ -81,20 +81,55 @@ export function applyTruePeakSafety(
   };
 }
 
-/** Copy input → output when already under gate (no DSP rewrite). */
+/**
+ * Produce output.wav when already under gate (no alimiter).
+ * WAV: byte-copy. MP3/FLAC/other: ffmpeg decode → pcm_s24le so download is real WAV.
+ */
 export function copyInputAsOutput(
   inputPath: string,
   outputPath: string
 ): MasterResult {
+  const lower = inputPath.toLowerCase();
+  const isWav = lower.endsWith(".wav");
   try {
-    fs.copyFileSync(inputPath, outputPath);
+    if (isWav) {
+      fs.copyFileSync(inputPath, outputPath);
+      return {
+        ok: true,
+        applied: false,
+        method: "copy",
+        target_dbtp: TP_GATE_DBTP,
+        output_wav: true,
+        note: `Input already ≤ ${TP_GATE_DBTP} dBTP; output.wav is a copy (no alimiter)`,
+      };
+    }
+    const p = run("ffmpeg", [
+      "-hide_banner",
+      "-y",
+      "-i",
+      inputPath,
+      "-c:a",
+      "pcm_s24le",
+      outputPath,
+    ]);
+    if (p.code !== 0 || !fs.existsSync(outputPath)) {
+      return {
+        ok: false,
+        applied: false,
+        method: "none",
+        target_dbtp: TP_GATE_DBTP,
+        output_wav: false,
+        note: "ffmpeg decode to WAV failed",
+        error: (p.stderr || p.stdout || "ffmpeg decode failed").trim().slice(0, 800),
+      };
+    }
     return {
       ok: true,
       applied: false,
       method: "copy",
       target_dbtp: TP_GATE_DBTP,
       output_wav: true,
-      note: `Input already ≤ ${TP_GATE_DBTP} dBTP; output.wav is a copy (no alimiter)`,
+      note: `Input already ≤ ${TP_GATE_DBTP} dBTP; ffmpeg decode → pcm_s24le output.wav (no alimiter)`,
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
@@ -104,7 +139,7 @@ export function copyInputAsOutput(
       method: "none",
       target_dbtp: TP_GATE_DBTP,
       output_wav: false,
-      note: "copy failed",
+      note: "copy/decode failed",
       error: message,
     };
   }

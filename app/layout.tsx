@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CORE64 Records — Recording Studio",
   description:
-    "CORE64 Records studio: upload WAV → ebur128 QC → true-peak safety master → download",
+    "CORE64 Records studio: upload WAV/FLAC/MP3 → ebur128 QC → true-peak safety master → download",
 };
 
 export default function RootLayout({
