@@ -136,7 +136,7 @@ const ReleasesSection = memo(function ReleasesSection() {
                     <h3 className="mt-1 font-mono text-sm font-semibold text-foreground line-clamp-1">{getLocalizedField(release, 'title', i18n.language)}</h3>
                     <p className="text-xs text-muted-foreground">{release.artist_name}</p>
                     {getLocalizedField(release, 'description', i18n.language) && (
-                      <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2">
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
                         {getLocalizedField(release, 'description', i18n.language)}
                       </p>
                     )}

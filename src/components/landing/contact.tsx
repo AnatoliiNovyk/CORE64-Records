@@ -7,6 +7,7 @@ import { Send, CheckCircle2, XCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,8 @@ type ContactForm = {
   subject?: string
   message: string
 }
+
+const PUBLIC_CONTACT_EMAIL = 'core64records@gmail.com'
 
 type ModalState = { open: false } | { open: true; success: boolean; message: string }
 
@@ -147,35 +150,55 @@ export default function ContactSection() {
           <p className="mt-4 text-sm text-muted-foreground">{description}</p>
         </div>
 
+        <p className="mb-8 text-center text-sm text-muted-foreground">
+          {t('contact.emailVisiblePrefix')}{' '}
+          <a
+            href={`mailto:${PUBLIC_CONTACT_EMAIL}`}
+            className="font-mono text-primary underline-offset-4 hover:underline"
+          >
+            {PUBLIC_CONTACT_EMAIL}
+          </a>
+        </p>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="contact-name">{t('contact.name')}</Label>
               <Input
+                id="contact-name"
                 placeholder={t('contact.name')}
                 className="bg-card"
+                autoComplete="name"
                 {...register('name')}
               />
               {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
             </div>
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="contact-email">{t('contact.email')}</Label>
               <Input
+                id="contact-email"
                 placeholder={t('contact.email')}
                 type="email"
                 className="bg-card"
+                autoComplete="email"
                 {...register('email')}
               />
               {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
             </div>
           </div>
-          <div>
+          <div className="space-y-2">
+            <Label htmlFor="contact-subject">{t('contact.subject')}</Label>
             <Input
+              id="contact-subject"
               placeholder={t('contact.subject')}
               className="bg-card"
               {...register('subject')}
             />
           </div>
-          <div>
+          <div className="space-y-2">
+            <Label htmlFor="contact-message">{t('contact.message')}</Label>
             <Textarea
+              id="contact-message"
               placeholder={t('contact.message')}
               rows={5}
               className="bg-card resize-none"

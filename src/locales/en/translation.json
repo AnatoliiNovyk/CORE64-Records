@@ -8,7 +8,9 @@
     "photo": "Photo",
     "events": "Events",
     "partners": "Partners",
-    "contact": "Contact"
+    "contact": "Contact",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
     "title": "CORE64 RECORDS",
@@ -98,7 +100,8 @@
       "emailRequired": "Valid email is required",
       "messageMin": "Message must be at least 10 characters"
     },
-    "rateLimited": "Too many messages sent. Please wait a few minutes and try again."
+    "rateLimited": "Too many messages sent. Please wait a few minutes and try again.",
+    "emailVisiblePrefix": "Or email us at"
   },
   "footer": {
     "rights": "All rights reserved",

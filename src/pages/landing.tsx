@@ -190,8 +190,13 @@ export default function LandingPage() {
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button size="icon" variant="ghost" className="md:hidden">
-                  {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="md:hidden"
+                  aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+                >
+                  {mobileOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-64 bg-card pt-12">
@@ -236,7 +241,7 @@ export default function LandingPage() {
           <p className="font-mono text-sm text-muted-foreground">
             {copyrightText}
           </p>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground/60">
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
             {(footerGenres || 'Producers / Releases / Events / Video')
               .split('/')
               .map(s => s.trim())
