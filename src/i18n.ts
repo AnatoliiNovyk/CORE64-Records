@@ -21,10 +21,40 @@ i18n
     },
   })
 
+function normalizeLang(lng: string): 'uk' | 'en' {
+  return lng.toLowerCase().startsWith('uk') ? 'uk' : 'en'
+}
+
+function setMetaContent(selector: string, content: string) {
+  const el = document.querySelector(selector)
+  if (el) el.setAttribute('content', content)
+}
+
+/** Keep <html lang>, document.title, and social/meta descriptions in sync with i18n. */
+export function syncDocumentMeta(lng?: string) {
+  const lang = normalizeLang(lng ?? i18n.language ?? 'uk')
+  document.documentElement.lang = lang
+
+  const title = i18n.t('meta.title', { lng: lang })
+  const description = i18n.t('meta.description', { lng: lang })
+
+  if (title) document.title = title
+  if (description) {
+    setMetaContent('meta[name="description"]', description)
+    setMetaContent('meta[property="og:description"]', description)
+    setMetaContent('meta[name="twitter:description"]', description)
+  }
+  if (title) {
+    setMetaContent('meta[property="og:title"]', title)
+    setMetaContent('meta[name="twitter:title"]', title)
+  }
+  setMetaContent('meta[property="og:locale"]', lang === 'uk' ? 'uk_UA' : 'en_US')
+}
+
 i18n.on('languageChanged', (lng) => {
-  document.documentElement.lang = lng
+  syncDocumentMeta(lng)
 })
 
-document.documentElement.lang = i18n.language
+syncDocumentMeta(i18n.language)
 
 export default i18n

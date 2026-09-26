@@ -3,10 +3,20 @@
  * Self-hosted stack has ENABLE_IMAGE_TRANSFORMATION + imgproxy, so
  * /storage/v1/render/image/public/...?width=&resize=contain&quality=
  * returns resized bytes (verified live).
+ *
+ * Public cover/gallery URLs are rewritten to same-origin `/media/...`
+ * proxies (nginx strips Kong `x-robots-tag: none`) when the host is the
+ * known sslip Supabase Kong gateway.
  */
 
 const OBJECT_MARKER = '/storage/v1/object/public/'
 const RENDER_MARKER = '/storage/v1/render/image/public/'
+
+/** Hosts whose public media should go through the apex `/media` proxy. */
+const PROXY_HOSTS = new Set(['supabasekong.169.58.250.236.sslip.io'])
+
+const SAME_ORIGIN_OBJECT = '/media/object/'
+const SAME_ORIGIN_RENDER = '/media/render/'
 
 export type MediaVariant = 'cover' | 'gallery' | 'avatar' | 'logo' | 'lightbox'
 
@@ -19,6 +29,14 @@ const DEFAULT_WIDTH: Record<MediaVariant, number> = {
 }
 
 const QUALITY = 70
+
+function shouldProxyOrigin(origin: string): boolean {
+  try {
+    return PROXY_HOSTS.has(new URL(origin).host)
+  } catch {
+    return false
+  }
+}
 
 /** Rewrite a public object URL to the imgproxy render endpoint. */
 export function optimizedMediaUrl(
@@ -34,6 +52,15 @@ export function optimizedMediaUrl(
     const origin = url.slice(0, objectIdx)
     const pathAndQuery = url.slice(objectIdx + OBJECT_MARKER.length)
     const path = pathAndQuery.split('?')[0]
+    // Strip leading bucket folder duplication: paths are like media/releases/...
+    // OBJECT_MARKER already ends at public/, so path includes "media/..."
+    // Same-origin proxy expects paths under /media/object/ relative to the
+    // public media bucket root (everything after .../public/media/).
+    const mediaPrefix = 'media/'
+    const rel = path.startsWith(mediaPrefix) ? path.slice(mediaPrefix.length) : path
+    if (shouldProxyOrigin(origin)) {
+      return `${SAME_ORIGIN_RENDER}${rel}?width=${width}&resize=contain&quality=${quality}`
+    }
     return `${origin}${RENDER_MARKER}${path}?width=${width}&resize=contain&quality=${quality}`
   }
 
@@ -43,7 +70,20 @@ export function optimizedMediaUrl(
     const origin = url.slice(0, renderIdx)
     const rest = url.slice(renderIdx + RENDER_MARKER.length)
     const path = rest.split('?')[0]
+    const mediaPrefix = 'media/'
+    const rel = path.startsWith(mediaPrefix) ? path.slice(mediaPrefix.length) : path
+    if (shouldProxyOrigin(origin)) {
+      return `${SAME_ORIGIN_RENDER}${rel}?width=${width}&resize=contain&quality=${quality}`
+    }
     return `${origin}${RENDER_MARKER}${path}?width=${width}&resize=contain&quality=${quality}`
+  }
+
+  // Already same-origin render proxy — refresh params.
+  if (url.startsWith(SAME_ORIGIN_RENDER) || url.startsWith(SAME_ORIGIN_OBJECT)) {
+    const base = url.startsWith(SAME_ORIGIN_RENDER) ? SAME_ORIGIN_RENDER : SAME_ORIGIN_OBJECT
+    const rest = url.slice(base.length)
+    const path = rest.split('?')[0]
+    return `${SAME_ORIGIN_RENDER}${path}?width=${width}&resize=contain&quality=${quality}`
   }
 
   return url
@@ -77,4 +117,17 @@ export function normalizeOutboundUrl(platform: string, href: string): string {
     return href
   }
   return href
+}
+
+/** Exported for tests / optional direct object proxy without imgproxy. */
+export function proxiedObjectUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  const objectIdx = url.indexOf(OBJECT_MARKER)
+  if (objectIdx === -1) return url
+  const origin = url.slice(0, objectIdx)
+  const path = url.slice(objectIdx + OBJECT_MARKER.length).split('?')[0]
+  const mediaPrefix = 'media/'
+  const rel = path.startsWith(mediaPrefix) ? path.slice(mediaPrefix.length) : path
+  if (!shouldProxyOrigin(origin)) return url
+  return `${SAME_ORIGIN_OBJECT}${rel}`
 }

@@ -1,0 +1,15 @@
+# CORE64 Records
+
+> Underground bass music label (Neurofunk, Drum & Bass, Breakbeat, Techstep).
+
+Website: https://core64.studio/
+Contact: core64records@gmail.com
+
+## Pages
+- / — label landing (releases, producers, video, photo, events, partners, contact)
+- /privacy — privacy notice (full policy forthcoming)
+- /terms — terms notice (full terms forthcoming)
+
+## Notes
+- Content is managed via CMS by the label; do not invent catalog, events, or partner links.
+- Admin UI at /admin is private and should not be indexed.

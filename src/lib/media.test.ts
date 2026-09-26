@@ -1,15 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { optimizedMediaUrl, optimizedSrcSet, normalizeOutboundUrl } from './media'
+import { optimizedMediaUrl, optimizedSrcSet, normalizeOutboundUrl, proxiedObjectUrl } from './media'
 
 const sample =
   'https://supabasekong.169.58.250.236.sslip.io/storage/v1/object/public/media/releases/abc.png'
 
 describe('optimizedMediaUrl', () => {
-  it('rewrites object URLs to render/image with width', () => {
+  it('rewrites sslip object URLs to same-origin /media/render proxy', () => {
     const out = optimizedMediaUrl(sample, { width: 800 })
-    expect(out).toContain('/storage/v1/render/image/public/media/releases/abc.png')
-    expect(out).toContain('width=800')
-    expect(out).toContain('quality=70')
+    expect(out).toBe('/media/render/releases/abc.png?width=800&resize=contain&quality=70')
   })
 
   it('passes through non-supabase URLs', () => {
@@ -21,6 +19,20 @@ describe('optimizedMediaUrl', () => {
   it('handles null', () => {
     expect(optimizedMediaUrl(null)).toBe('')
   })
+
+  it('keeps non-sslip supabase-style hosts on absolute render URL', () => {
+    const other =
+      'https://other.example/storage/v1/object/public/media/releases/abc.png'
+    const out = optimizedMediaUrl(other, { width: 400 })
+    expect(out).toContain('https://other.example/storage/v1/render/image/public/media/releases/abc.png')
+    expect(out).toContain('width=400')
+  })
+})
+
+describe('proxiedObjectUrl', () => {
+  it('maps sslip object URL to /media/object', () => {
+    expect(proxiedObjectUrl(sample)).toBe('/media/object/releases/abc.png')
+  })
 })
 
 describe('optimizedSrcSet', () => {
@@ -29,6 +41,7 @@ describe('optimizedSrcSet', () => {
     expect(set.split(', ')).toHaveLength(2)
     expect(set).toContain('400w')
     expect(set).toContain('800w')
+    expect(set).toContain('/media/render/releases/abc.png')
   })
 })
 

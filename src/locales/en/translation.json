@@ -106,7 +106,8 @@
   },
   "footer": {
     "rights": "All rights reserved",
-    "genre": "Neurofunk / DnB / Breakbeat / Techstep"
+    "genre": "Neurofunk / DnB / Breakbeat / Techstep",
+    "genres": "Producers / Releases / Events / Video"
   },
   "admin": {
     "brand": "CORE64 CRM",
@@ -412,5 +413,9 @@
   "config": {
     "title": "Configuration error",
     "body": "The site is not connected to its database. Please contact the administrator."
+  },
+  "meta": {
+    "title": "CORE64 Records | Underground Bass Music Label",
+    "description": "CORE64 Records — underground bass music label. Neurofunk, Drum & Bass, Breakbeat, Dub, Techstep and Hard Techno."
   }
 }

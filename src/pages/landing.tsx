@@ -107,7 +107,8 @@ export default function LandingPage() {
   const copyrightText = rawFooterRights.includes('{year}')
     ? rawFooterRights.replace('{year}', String(new Date().getFullYear()))
     : rawFooterRights
-  const footerGenres = useContentValue('footer_genres', 'Producers / Releases / Events / Video')
+  const footerGenresFallback = t('footer.genres')
+  const footerGenres = useContentValue('footer_genres', footerGenresFallback)
 
   const navItems = NAV_IDS.map(id => ({ id, label: t(`nav.${id}`) }))
 
@@ -243,7 +244,7 @@ export default function LandingPage() {
             {copyrightText}
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
-            {(footerGenres || 'Producers / Releases / Events / Video')
+            {(footerGenres || footerGenresFallback)
               .split('/')
               .map(s => s.trim())
               .filter(Boolean)
