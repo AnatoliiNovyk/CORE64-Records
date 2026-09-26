@@ -8,7 +8,7 @@
     <link rel="canonical" href="https://core64.studio/" />
 
     <title>CORE64 Records | Underground Bass Music Label</title>
-    <meta name="description" content="CORE64 Records is an underground bass music label focused on Neurofunk, Drum &amp; Bass, Breakbeat, Dub, Techstep and Hard Techno." />
+    <meta name="description" content="CORE64 Records — андерграунд бас-музичний лейбл. Neurofunk, Drum &amp; Bass, Breakbeat, Dub, Techstep та Hard Techno." />
     <meta name="theme-color" content="#09090b" />
 
     <meta property="og:site_name" content="CORE64 Records" />
@@ -26,9 +26,71 @@
     <meta name="twitter:title" content="CORE64 Records | Underground Bass Music Label" />
     <meta name="twitter:description" content="Neurofunk / DnB / Breakbeat / Techstep. Raw energy and uncompromising sound design." />
     <meta name="twitter:image" content="https://core64.studio/core64-logo.webp" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://core64.studio/#organization",
+          "name": "CORE64 Records",
+          "url": "https://core64.studio/",
+          "logo": "https://core64.studio/core64-logo.webp",
+          "sameAs": [
+            "https://www.instagram.com/core64records",
+            "https://soundcloud.com/core64",
+            "https://www.youtube.com/@sunfixer"
+          ]
+        },
+        {
+          "@type": "MusicGroup",
+          "@id": "https://core64.studio/#musicgroup",
+          "name": "CORE64 Records",
+          "url": "https://core64.studio/",
+          "genre": ["Neurofunk", "Drum and Bass", "Breakbeat", "Techstep"],
+          "sameAs": [
+            "https://www.instagram.com/core64records",
+            "https://soundcloud.com/core64",
+            "https://www.youtube.com/@sunfixer"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://core64.studio/#website",
+          "name": "CORE64 Records",
+          "url": "https://core64.studio/",
+          "publisher": { "@id": "https://core64.studio/#organization" },
+          "inLanguage": ["uk", "en"]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <a class="skip-link" href="#main">Перейти до вмісту</a>
+    <div id="root">
+      <!-- Prerender / crawler shell. React replaces #root on mount. -->
+      <header>
+        <p>CORE64 Records</p>
+        <nav aria-label="Primary">
+          <a href="/#home">Головна</a>
+          <a href="/#about">Про нас</a>
+          <a href="/#releases">Релізи</a>
+          <a href="/#producers">Продюсери</a>
+          <a href="/#video">Відео</a>
+          <a href="/#photo">Фото</a>
+          <a href="/#events">Події</a>
+          <a href="/#partners">Партнери</a>
+          <a href="/#contact">Контакти</a>
+        </nav>
+      </header>
+      <main id="main">
+        <h1>CORE64 Records</h1>
+        <p>Андерграунд бас-музичний лейбл. Neurofunk / DnB / Breakbeat / Techstep.</p>
+        <p>Underground bass music label focused on Neurofunk, Drum &amp; Bass, Breakbeat, Dub, Techstep and Hard Techno.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

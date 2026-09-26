@@ -10,6 +10,7 @@ import { usePlayer } from '@/lib/player'
 import { ReleaseTypeBadge, formatTime } from '@/components/player/release-helpers'
 import { cn } from '@/lib/utils'
 import type { Release } from '@/types/database'
+import { optimizedMediaUrl, optimizedSrcSet } from '@/lib/media'
 
 const GENRE_COLORS: Record<string, string> = {
   neurofunk: 'bg-chart-1/20 text-chart-1',
@@ -108,7 +109,17 @@ const ReleasesSection = memo(function ReleasesSection() {
                 >
                   <div className="relative aspect-square bg-secondary">
                     {release.cover_art_url ? (
-                      <img src={release.cover_art_url} alt={release.title} className="h-full w-full object-cover" />
+                      <img
+                        src={optimizedMediaUrl(release.cover_art_url, { variant: 'cover', width: 600 })}
+                        srcSet={optimizedSrcSet(release.cover_art_url, [400, 600, 900, 1200])}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                        alt={release.title}
+                        width={600}
+                        height={600}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full items-center justify-center">
                         <span className="font-mono text-4xl font-bold text-primary/20">{release.catalog_number}</span>
@@ -158,7 +169,15 @@ const ReleasesSection = memo(function ReleasesSection() {
           {selected && (
             <div className="space-y-4">
               {selected.cover_art_url && (
-                <img src={selected.cover_art_url} alt={selected.title} className="w-full rounded-md" />
+                <img
+                  src={optimizedMediaUrl(selected.cover_art_url, { variant: 'cover', width: 1200 })}
+                  alt={selected.title}
+                  width={1200}
+                  height={1200}
+                  loading="eager"
+                  decoding="async"
+                  className="w-full rounded-md"
+                />
               )}
               <div className="flex flex-wrap items-center gap-2">
                 <ReleaseTypeBadge type={selected.release_type} label={t(`player.types.${selected.release_type}`)} />

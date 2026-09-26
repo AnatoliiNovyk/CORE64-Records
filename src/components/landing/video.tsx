@@ -1,11 +1,59 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Play } from 'lucide-react'
 import { useVideos, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Skeleton } from '@/components/ui/skeleton'
 
 function getYouTubeId(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]+)/)
   return match ? match[1] : null
+}
+
+function YouTubeFacade({
+  videoId,
+  title,
+}: {
+  videoId: string
+  title: string
+}) {
+  const [active, setActive] = useState(false)
+  const thumb = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+
+  if (active) {
+    return (
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        loading="lazy"
+        className="h-full w-full"
+      />
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setActive(true)}
+      className="group relative h-full w-full overflow-hidden bg-secondary"
+      aria-label={`Play video: ${title}`}
+    >
+      <img
+        src={thumb}
+        alt=""
+        width={480}
+        height={360}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      />
+      <span className="absolute inset-0 bg-black/35 transition-colors group-hover:bg-black/25" />
+      <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+        <Play className="h-6 w-6 translate-x-0.5" aria-hidden="true" />
+      </span>
+    </button>
+  )
 }
 
 const VideoSection = memo(function VideoSection() {
@@ -37,13 +85,7 @@ const VideoSection = memo(function VideoSection() {
                 <div key={video.id} className="group overflow-hidden rounded-lg border border-border bg-card">
                   <div className="relative aspect-video">
                     {videoId ? (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${videoId}`}
-                        title={video.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="h-full w-full"
-                      />
+                      <YouTubeFacade videoId={videoId} title={video.title} />
                     ) : (
                       <div className="flex h-full items-center justify-center bg-secondary">
                         <span className="text-muted-foreground">{t('video.invalidUrl')}</span>

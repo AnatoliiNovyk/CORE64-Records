@@ -4,6 +4,7 @@ import { usePartners, useContentValue, getLocalizedField } from '@/hooks/use-dat
 import { Skeleton } from '@/components/ui/skeleton'
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel'
 import { useState } from 'react'
+import { optimizedMediaUrl, optimizedSrcSet } from '@/lib/media'
 
 const SCROLL_SPEED = 0.6
 
@@ -77,8 +78,14 @@ export default function PartnersSection() {
                   >
                     {partner.logo_url ? (
                       <img
-                        src={partner.logo_url}
+                        src={optimizedMediaUrl(partner.logo_url, { variant: 'logo', width: 600 })}
+                        srcSet={optimizedSrcSet(partner.logo_url, [300, 600, 800])}
+                        sizes="(max-width: 640px) 70vw, (max-width: 1024px) 30vw, 20vw"
                         alt={partner.name}
+                        width={600}
+                        height={600}
+                        loading="lazy"
+                        decoding="async"
                         className="h-[75%] w-[75%] object-contain opacity-60 transition-opacity group-hover:opacity-100"
                       />
                     ) : (

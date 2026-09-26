@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { usePhotos, useContentValue, getLocalizedField } from '@/hooks/use-data'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { optimizedMediaUrl, optimizedSrcSet } from '@/lib/media'
 
 const PhotoSection = memo(function PhotoSection() {
   const { t, i18n } = useTranslation()
@@ -36,8 +37,14 @@ const PhotoSection = memo(function PhotoSection() {
                 className="group relative aspect-square overflow-hidden rounded-md border border-border"
               >
                 <img
-                  src={photo.image_url}
+                  src={optimizedMediaUrl(photo.image_url, { variant: 'gallery', width: 800 })}
+                  srcSet={optimizedSrcSet(photo.image_url, [400, 800, 1200, 1600])}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   alt={getLocalizedField(photo, 'title', i18n.language) || getLocalizedField(photo, 'caption', i18n.language) || ''}
+                  width={800}
+                  height={800}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent opacity-0 transition-opacity group-hover:opacity-100">
@@ -58,7 +65,15 @@ const PhotoSection = memo(function PhotoSection() {
       <Dialog open={!!selectedImg} onOpenChange={() => setSelectedImg(null)}>
         <DialogContent className="max-w-4xl border-border bg-card p-2">
           {selectedImg && (
-            <img src={selectedImg} alt="" className="w-full rounded-md" />
+            <img
+              src={optimizedMediaUrl(selectedImg, { variant: 'lightbox', width: 1600 })}
+              alt=""
+              width={1600}
+              height={1600}
+              loading="eager"
+              decoding="async"
+              className="w-full rounded-md"
+            />
           )}
         </DialogContent>
       </Dialog>

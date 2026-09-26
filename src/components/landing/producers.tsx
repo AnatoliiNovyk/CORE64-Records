@@ -21,6 +21,7 @@ import {
   DeezerIcon,
   BandcampIcon,
 } from '@/components/icons/brand-icons'
+import { optimizedMediaUrl, normalizeOutboundUrl } from '@/lib/media'
 
 const SOCIAL_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   website: Globe,
@@ -86,7 +87,7 @@ const ProducersSection = memo(function ProducersSection() {
               <Card key={producer.id} className="border-border bg-card/50 transition-all hover:border-primary/30">
                 <CardContent className="flex flex-col items-center gap-4 py-8 px-6 text-center">
                   <Avatar className="h-48 w-48 border-2 border-border">
-                    <AvatarImage src={producer.avatar_url || undefined} alt={producer.name} className="object-cover" />
+                    <AvatarImage src={producer.avatar_url ? optimizedMediaUrl(producer.avatar_url, { variant: 'avatar', width: 400 }) : undefined} alt={producer.name} className="object-cover" loading="lazy" decoding="async" />
                     <AvatarFallback className="bg-secondary font-mono text-4xl">
                       {producer.name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -111,7 +112,7 @@ const ProducersSection = memo(function ProducersSection() {
                           ? `mailto:${url}`
                           : platform === 'phone'
                             ? `tel:${url}`
-                            : url
+                            : normalizeOutboundUrl(platform, String(url))
                         return (
                           <a
                             key={platform}
@@ -140,7 +141,7 @@ const ProducersSection = memo(function ProducersSection() {
                         {Object.entries(producer.music_links).map(([platform, url]) => (
                           <a
                             key={platform}
-                            href={url}
+                            href={normalizeOutboundUrl(platform, String(url))}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-primary/5 text-muted-foreground transition-all duration-200 hover:scale-110 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"

@@ -157,6 +157,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <a className="skip-link" href="#main">{t('nav.skipToContent')}</a>
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled ? 'glass border-b border-border shadow-lg' : 'bg-transparent'
@@ -222,7 +223,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main>
+      <main id="main">
         <HeroSection />
         <AboutSection />
         <Suspense fallback={<div className="min-h-[50vh]" />}>

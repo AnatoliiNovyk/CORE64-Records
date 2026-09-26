@@ -21,6 +21,7 @@ import { Slider } from '@/components/ui/slider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { usePlayer } from '@/lib/player'
+import { optimizedMediaUrl } from '@/lib/media'
 import { AudioVisualizer } from '@/components/player/audio-visualizer'
 import { ReleaseTypeBadge, formatTime } from '@/components/player/release-helpers'
 import { toast } from 'sonner'
@@ -73,7 +74,7 @@ export function PlayerBar() {
         >
           <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md border border-border bg-secondary">
             {release.cover_art_url ? (
-              <img src={release.cover_art_url} alt="" className="h-full w-full object-cover" />
+              <img src={optimizedMediaUrl(release.cover_art_url, { width: 96 })} alt="" width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center">
                 <Music2 className="h-5 w-5 text-muted-foreground" />
@@ -171,7 +172,7 @@ export function PlayerBar() {
               <div className="flex flex-col items-center md:items-start md:w-1/2">
                 <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-lg border border-border bg-secondary shadow-2xl shadow-primary/10">
                   {release.cover_art_url ? (
-                    <img src={release.cover_art_url} alt="" className="h-full w-full object-cover" />
+                    <img src={optimizedMediaUrl(release.cover_art_url, { width: 96 })} alt="" width={96} height={96} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center">
                       <Music2 className="h-12 w-12 text-muted-foreground" />
